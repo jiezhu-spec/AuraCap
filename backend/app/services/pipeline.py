@@ -94,6 +94,7 @@ class PipelineService:
             )
         except ProviderError as exc:
             logger.error("provider_error", extra={"extra": {"code": exc.code, "detail": str(exc)}})
+            print(f"PROVIDER_ERROR: code={exc.code} detail={exc}")
             return ProcessResult(
                 request_id=request_id,
                 timeline_path=str(self.settings.timeline_file),
