@@ -1,5 +1,3 @@
-# AuraCap
-
 ![AuraCap Banner](docs/banner.png)
 
 [![License](https://img.shields.io/github/license/massif-01/AuraCap)](LICENSE)
