@@ -4,12 +4,13 @@ import logging
 from datetime import datetime
 
 from backend.app.core.config import Settings
+from backend.app.core.i18n import t
 from backend.app.models.schemas import AudioMode, CaptureRequest, ProcessResult, SyncEvent
 from backend.app.providers.base import ProviderError
 from backend.app.providers.factory import ProviderBundle
 from backend.app.services.common import load_prompt
 from backend.app.services.custom_operation import run_custom_operation
-from backend.app.services.syncer import SyncService
+from backend.app.services.sync_queue import enqueue as sync_enqueue
 from backend.app.services.timeline import append_timeline
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,6 @@ class PipelineService:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.providers = ProviderBundle(settings)
-        self.syncer = SyncService(settings)
 
     async def _extract_content(self, request: CaptureRequest) -> str:
         timeline_prompt = load_prompt(
@@ -74,13 +74,14 @@ class PipelineService:
                     suffix=entry.id,
                 )
 
-            sync_results = await self.syncer.dispatch(
+            sync_results = await sync_enqueue(
+                self.settings,
                 SyncEvent(
                     event_type="timeline",
-                    title=f"AuraCap Timeline {entry.timestamp_display}",
+                    title=f"{t('timeline_title', self.settings.output_locale)} {entry.timestamp_display}",
                     body=entry.extracted_content,
                     artifact_path=str(self.settings.timeline_file),
-                )
+                ),
             )
 
             return ProcessResult(
@@ -88,7 +89,7 @@ class PipelineService:
                 timeline_path=str(self.settings.timeline_file),
                 extracted_content=extracted,
                 customized_path=customized_path,
-                sync_results=[r.model_dump() for r in sync_results],
+                sync_results=sync_results,
                 status="success",
             )
         except ProviderError as exc:

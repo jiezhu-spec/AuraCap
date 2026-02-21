@@ -78,6 +78,7 @@ class Settings(BaseModel):
     allowed_audio_mime: str = "audio/m4a,audio/mp4,audio/mpeg,audio/wav,audio/x-wav"
 
     insights_cron: str = "0 1 * * *"
+    insights_target_day_offset: int = 1
     summary_cron: str = "0 2 */3 * *"
     summary_window_days: int = 3
 
@@ -127,6 +128,13 @@ class Settings(BaseModel):
     def validate_upload_limit(cls, v: int) -> int:
         if v < 1:
             raise ValueError("max_upload_mb must be >= 1")
+        return v
+
+    @field_validator("insights_target_day_offset")
+    @classmethod
+    def validate_insights_target_day_offset(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("insights_target_day_offset must be >= 0")
         return v
 
 

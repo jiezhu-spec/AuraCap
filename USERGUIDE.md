@@ -277,6 +277,36 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 - 请求正文：第 4 步 JSON
 6. 动作：`显示结果`
 
+### 2.4.3 可选优化：用 GitHub App 的“调度工作流程”替代手写 dispatch
+如果你的 iPhone 已安装并登录 GitHub App，可把 2.4.2 的第 4-5 步替换成下面做法，减少手写 JSON 和 header。
+
+前提：
+1. 你的 workflow 支持 `workflow_dispatch`（本项目已支持）。
+2. 你知道 workflow 文件名（建议填 `ingest_dispatch.yml`）。
+3. 你已在 GitHub App 登录对应账号。
+
+替换步骤：
+1. 保留 2.4.2 的第 1-3 步，拿到 `asset_id`。
+2. 新增动作 `字典`，命名 `WF_INPUTS`，填入：
+```json
+{
+  "asset_id": "<asset_id>",
+  "media_type": "screenshot",
+  "mime_type": "image/png",
+  "locale": "<locale>",
+  "timezone": "<timezone>"
+}
+```
+3. 新增 GitHub 动作 `调度工作流程`，字段这样填：
+- `Owner`：`AURACAP_GH_OWNER`
+- `Workflow ID`：`ingest_dispatch.yml`
+- `Repository`：`AURACAP_GH_REPO`
+- `Branch / ref`：`main`（或你的默认分支）
+- `Inputs`：上一步 `WF_INPUTS`
+- `Account`：你在 GitHub App 登录的账号
+4. 删掉 2.4.2 原来的第 4-5 步（手写 dispatch JSON + `POST /dispatches`）。
+5. 保留“显示结果”或改成“显示通知”。
+
 ### 2.5 第五步：搭建 GitHub-only 录音快捷指令
 步骤与 2.4 相同，改两处：
 - 上传 `Content-Type` 用 `audio/m4a`
@@ -284,17 +314,27 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
   - `media_type=audio`
   - `mime_type=audio/m4a`
 
+### 2.5.1 录音的 GitHub App 调度版（可选）
+如果你使用 2.4.3 的 GitHub App 调度方式，录音版只改 `WF_INPUTS` 两个字段：
+1. `media_type=audio`
+2. `mime_type=audio/m4a`
+
+其余 `Owner`、`Workflow ID`、`Repository`、`Branch / ref`、`Account` 保持一致。
+
 ### 2.6 路径 B 成功判定
-1. dispatch 接口返回 `204 No Content`
-2. Actions 出现 `AuraCap Ingest Dispatch` 运行记录
-3. 运行后 `storage/` 有新提交
-4. 若 `GITHUB_RELEASE_DELETE_AFTER_PROCESS=true`，对应上传 asset 会自动删除
+1. 如果用手写 dispatch：接口返回 `204 No Content`
+2. 如果用 GitHub App 调度：快捷指令动作执行成功且无参数错误提示
+3. Actions 出现 `AuraCap Ingest Dispatch` 运行记录
+4. 运行后 `storage/` 有新提交
+5. 若 `GITHUB_RELEASE_DELETE_AFTER_PROCESS=true`，对应上传 asset 会自动删除
 
 ### 2.7 路径 B 常见错误
 - `401/403`：token 错或权限不足
 - `404`：owner/repo/release_id 错
 - Action 不触发：`event_type` 不是 `auracap_ingest` 或 workflow 不在默认分支
 - Action 失败：asset 无法下载（被删、URL异常、权限问题）
+- GitHub App 的 `Inputs` 灰色：先填 `Owner / Workflow ID / Repository / Branch / Account`
+- GitHub App 报参数错误：检查 `Workflow ID` 是否填 `ingest_dispatch.yml`，以及 `WF_INPUTS` 是否含 `asset_id`
 
 ## 3. 配置说明（两条路径通用）
 
@@ -328,3 +368,26 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 ## 6. 相关文档
 - GitHub-only Inbox 详解：`/Users/massif/AuraCap/docs/GITHUB_RELEASE_INBOX.md`
 - 模板快捷指令说明：`/Users/massif/AuraCap/shortcuts/README.md`
+
+## 7. English Summary
+
+### Path A (Self-host / Cloud)
+- Run backend locally or on a server; iOS shortcuts POST to your API (`/v1/capture/raw`).
+- Configure via `.env`. Generate templates: `python scripts/build_shortcuts.py`.
+- Success: JSON `status: success`, new entries in `storage/timeline.md`.
+
+### Path B (GitHub-only)
+- No backend required. iOS uploads to GitHub Release Asset, then triggers `repository_dispatch`.
+- Configure in `Settings -> Secrets and variables -> Actions`.
+- One-time setup: run `AuraCap Setup Release Inbox`, create token with `Contents: Read and write`.
+- Success: Dispatch returns 204, Actions run, `storage/` updated.
+
+### Key Configuration
+- `EXTRACT_ONLY`: only extract to timeline (no insights/summary).
+- `INSIGHTS_TARGET_DAY_OFFSET`: 0=today, 1=yesterday (default).
+- `SYNC_DEFAULT_FREQUENCY`: ON_EVENT (immediate), DAILY/CRON (batch at cron time).
+
+### Troubleshooting
+- `PAYLOAD_TOO_LARGE`: use `/v1/capture/raw` or `/v1/capture/upload`.
+- `AUTH_FAILED`: check provider and API key.
+- Path B no write: check token permissions, `event_type=auracap_ingest`, `asset_id` correct.

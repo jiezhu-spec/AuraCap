@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from backend.app.core.config import Settings
+from backend.app.core.i18n import t
+from backend.app.models.schemas import SyncEvent
 from backend.app.providers.factory import ProviderBundle
 from backend.app.services.custom_operation import run_custom_operation
 from backend.app.services.insights import run_daily_insights
 from backend.app.services.summary import run_periodic_summary
+from backend.app.services.sync_queue import enqueue as sync_enqueue, flush_pending
 from backend.app.services.timeline import entries_by_day
+
+logger = logging.getLogger(__name__)
 
 
 def _state_file(settings: Settings) -> Path:
@@ -66,6 +72,25 @@ def _matches_cron(cron_expr: str, dt: datetime) -> bool:
     return all(checks)
 
 
+async def _dispatch_scheduler_artifact(
+    path_str: str | None,
+    event_type: str,
+    title_suffix: str,
+    settings: Settings,
+) -> None:
+    if not path_str:
+        return
+    try:
+        body = Path(path_str).read_text(encoding="utf-8")
+    except OSError as exc:
+        logger.warning("sync_skip_read_failed", extra={"path": path_str, "error": str(exc)})
+        return
+    title_key = f"{event_type}_title"
+    title = f"{t(title_key, settings.output_locale)} {title_suffix}"
+    event = SyncEvent(event_type=event_type, title=title, body=body, artifact_path=path_str)
+    await sync_enqueue(settings, event)
+
+
 def _should_run(cron_expr: str, last_run_iso: str | None, now: datetime) -> bool:
     if last_run_iso is None:
         return _matches_cron(cron_expr, now)
@@ -89,16 +114,21 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
     providers = ProviderBundle(settings)
     results: dict[str, str | None] = {"insight": None, "summary": None, "custom": None}
 
-    if settings.enable_insights and _should_run(settings.insights_cron, state.get("insights_last"), now):
+    insights_target_day = (now - timedelta(days=settings.insights_target_day_offset)).date()
+    if not settings.extract_only and settings.enable_insights and _should_run(settings.insights_cron, state.get("insights_last"), now):
         results["insight"] = await run_daily_insights(
             settings=settings,
             provider=providers.text,
-            target_day=now.date(),
+            target_day=insights_target_day,
             timezone_name=settings.default_timezone,
         )
         state["insights_last"] = now.isoformat()
+        if results["insight"]:
+            await _dispatch_scheduler_artifact(
+                results["insight"], "insight", insights_target_day.isoformat(), settings
+            )
 
-    if settings.enable_summary and _should_run(settings.summary_cron, state.get("summary_last"), now):
+    if not settings.extract_only and settings.enable_summary and _should_run(settings.summary_cron, state.get("summary_last"), now):
         results["summary"] = await run_periodic_summary(
             settings=settings,
             provider=providers.text,
@@ -106,10 +136,15 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
             timezone_name=settings.default_timezone,
         )
         state["summary_last"] = now.isoformat()
+        if results["summary"]:
+            out_path = Path(results["summary"])
+            await _dispatch_scheduler_artifact(
+                results["summary"], "summary", out_path.stem.replace("_", " ~ "), settings
+            )
 
     if settings.enable_custom_operation and settings.custom_operation_mode == "CRON":
         if _should_run(settings.custom_operation_cron, state.get("custom_last"), now):
-            day_entries = entries_by_day(settings.timeline_file, now.date(), settings.default_timezone)
+            day_entries = entries_by_day(settings.timeline_file, insights_target_day, settings.default_timezone)
             input_text = "\n".join(item["extracted_content"] for item in day_entries)
             if input_text.strip():
                 results["custom"] = await run_custom_operation(
@@ -117,7 +152,17 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
                     provider=providers.text,
                     input_text=input_text,
                 )
+                if results["custom"]:
+                    stamp = Path(results["custom"]).stem.replace("custom_", "")
+                    await _dispatch_scheduler_artifact(
+                        results["custom"], "customized", stamp, settings
+                    )
             state["custom_last"] = now.isoformat()
+
+    if settings.sync_enable and settings.sync_default_frequency in ("DAILY", "CRON"):
+        if _should_run(settings.sync_default_cron, state.get("sync_last"), now):
+            await flush_pending(settings)
+            state["sync_last"] = now.isoformat()
 
     _save_state(state_path, state)
     return results

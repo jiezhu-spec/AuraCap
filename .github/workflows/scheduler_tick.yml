@@ -62,6 +62,7 @@ jobs:
       MISTRAL_ASR_MODEL: ${{ vars.MISTRAL_ASR_MODEL || 'voxtral-mini-latest' }}
 
       INSIGHTS_CRON: ${{ vars.INSIGHTS_CRON || '0 1 * * *' }}
+      INSIGHTS_TARGET_DAY_OFFSET: ${{ vars.INSIGHTS_TARGET_DAY_OFFSET || '1' }}
       SUMMARY_CRON: ${{ vars.SUMMARY_CRON || '0 2 */3 * *' }}
       SUMMARY_WINDOW_DAYS: ${{ vars.SUMMARY_WINDOW_DAYS || '3' }}
       CUSTOM_OPERATION_MODE: ${{ vars.CUSTOM_OPERATION_MODE || 'ON_EACH_TRIGGER' }}

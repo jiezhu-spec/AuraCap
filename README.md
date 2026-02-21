@@ -25,7 +25,9 @@ AuraCap 是一个“快捷指令优先”的 AI 记录系统。
 ### 路径 B：GitHub-only（推荐给不想维护服务的小白）
 - 不需要你维护常驻 API
 - iOS 先上传文件到 GitHub Release Asset
-- iOS 再触发 `repository_dispatch`
+- iOS 再触发工作流（两种方式）：
+  - 方式 1：手写 `repository_dispatch`（兼容性最高）
+  - 方式 2：GitHub App `调度工作流程`（配置步骤更少）
 - GitHub Action 处理后写回 `storage/`
 - 不依赖外部中转存储服务
 - 配置来源：GitHub `Actions Secrets and Variables`
@@ -56,7 +58,7 @@ docker compose ps
 ### 路径 B：GitHub-only
 1. 配置 `Actions Secrets and Variables`
 2. 运行 `AuraCap Setup Release Inbox` workflow 初始化 release inbox
-3. 在 iOS 快捷指令里执行：上传 Release Asset -> `repository_dispatch`
+3. 在 iOS 快捷指令里执行：上传 Release Asset -> 触发工作流（`repository_dispatch` 或 GitHub App 调度）
 
 详细步骤请看：
 - `/Users/massif/AuraCap/USERGUIDE.md`
@@ -149,7 +151,8 @@ python scripts/build_shortcuts.py
 
 注意：
 - 上述模板只用于路径 A（直传后端 API）
-- 路径 B（GitHub-only）请按 `USERGUIDE` 第 2.4 与第 2.5 节手动搭建 dispatch 快捷指令
+- 路径 B（GitHub-only）请按 `USERGUIDE` 第 2.4 与第 2.5 节搭建快捷指令
+- 如果已安装 GitHub App，优先看 `USERGUIDE` 第 2.4.3 与第 2.5.1（调度工作流程版，步骤更少）
 
 ## API 一览
 - `POST /v1/capture/json`

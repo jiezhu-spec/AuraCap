@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.1] - 2026-02-22
+### Fixed
+- EXTRACT_ONLY now correctly skips insights and summary in scheduler.
+- Insights/summary/customized artifacts now trigger sync dispatch to Feishu/Telegram/Discord/WhatsApp.
+- Daily insights target day: added INSIGHTS_TARGET_DAY_OFFSET (default 1 = yesterday) for correct day selection when run at e.g. 1am.
+### Added
+- i18n module: OUTPUT_LOCALE controls SyncEvent titles (zh-CN/en-US).
+- sync_default_frequency: ON_EVENT (immediate), DAILY/CRON (batch at sync_default_cron time) with .sync_pending.jsonl queue.
+- USERGUIDE English summary section.
+
 ## [0.1.0] - 2026-02-21
 ### Added
 - Initial AuraCap architecture with Python backend.

@@ -21,6 +21,7 @@ def test_scheduler_runs_with_mock_provider(tmp_path: Path) -> None:
         customized_dir=tmp_path / "customized",
         insights_cron="* * * * *",
         summary_cron="* * * * *",
+        insights_target_day_offset=0,
         enable_custom_operation=False,
         enable_insights=True,
         enable_summary=True,
