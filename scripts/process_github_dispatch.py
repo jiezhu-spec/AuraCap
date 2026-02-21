@@ -73,6 +73,8 @@ async def _main(event_path: str) -> int:
     data = json.loads(open(event_path, "r", encoding="utf-8").read())
 
     payload = data.get("client_payload") or data.get("inputs") or {}
+    print(f"DEBUG payload keys: {list(payload.keys())}")
+    print(f"DEBUG asset_id raw: {repr(payload.get('asset_id'))}")
     media_type = MediaType(payload.get("media_type", "screenshot"))
     mime_type = payload.get("mime_type", "image/png")
     locale = payload.get("locale", settings.output_locale)
