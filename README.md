@@ -4,10 +4,6 @@
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20GitHub%20Actions-lightgrey)](.)
 
-**ios** **shortcuts** **screenshot** **ai** **github-actions** **automation** **vision** **personal-productivity**
-
----
-
 Turn your iOS screenshots into AI-structured wisdom—one-click setup with GitHub Actions, or self-host anywhere.
 
 ---
