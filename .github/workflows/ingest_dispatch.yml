@@ -117,8 +117,8 @@ jobs:
 
       REQUEST_SIGNATURE_SECRET: ${{ secrets.REQUEST_SIGNATURE_SECRET }}
       SKIP_SIGNATURE_VERIFICATION: ${{ vars.SKIP_SIGNATURE_VERIFICATION || 'true' }}
-      GITHUB_RELEASE_INBOX_TAG: ${{ vars.GITHUB_RELEASE_INBOX_TAG || 'auracap-inbox' }}
-      GITHUB_RELEASE_DELETE_AFTER_PROCESS: ${{ vars.GITHUB_RELEASE_DELETE_AFTER_PROCESS || 'true' }}
+      GITHUB_RELEASE_INBOX_TAG: ${{ vars.AURACAP_RELEASE_INBOX_TAG || 'auracap-inbox' }}
+      GITHUB_RELEASE_DELETE_AFTER_PROCESS: ${{ vars.AURACAP_RELEASE_DELETE_AFTER_PROCESS || 'true' }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -131,7 +131,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Process dispatch
-        run: python scripts/process_github_dispatch.py "$GITHUB_EVENT_PATH"
+        run: PYTHONPATH=. python scripts/process_github_dispatch.py "$GITHUB_EVENT_PATH"
       - name: Persist storage artifacts
         if: ${{ success() }}
         run: |

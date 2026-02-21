@@ -18,8 +18,8 @@
 - `ASR_PROVIDER=mock`
 - `OUTPUT_LOCALE=zh-CN`
 - `DEFAULT_TIMEZONE=local`
-- `GITHUB_RELEASE_INBOX_TAG=auracap-inbox`
-- `GITHUB_RELEASE_DELETE_AFTER_PROCESS=true`
+- `AURACAP_RELEASE_INBOX_TAG=auracap-inbox`
+- `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`
 
 最小 Secrets：
 - mock 联调可以不填模型 key
@@ -73,7 +73,7 @@
 - 请求正文：`文件`
 - 文件：上一步“截取屏幕”输出
 - Header：
-  - `Authorization: Bearer <token>`
+  - `Authorization: Bearer <token>`（`<token>` 为 2.2 创建的 Fine-grained token；格式为 `Bearer ` 加空格再加 token）
   - `Accept: application/vnd.github+json`
   - `Content-Type: image/png`
 3. 动作：`获取字典值`，取上传返回 JSON 的 `id`，记为 `asset_id`。
@@ -97,7 +97,7 @@
 - 方法：`POST`
 - 请求正文：`JSON`（或文本 JSON）
 - Header：
-  - `Authorization: Bearer <token>`
+  - `Authorization: Bearer <token>`（同上，填 2.2 的 token）
   - `Accept: application/vnd.github+json`
   - `Content-Type: application/json`
 6. 动作：`显示结果`。
@@ -113,7 +113,7 @@
 1. dispatch 接口返回 `204 No Content`。  
 2. Actions 页面出现 `AuraCap Ingest Dispatch` 运行。  
 3. 运行成功后，仓库 `storage/` 出现新提交。  
-4. 若 `GITHUB_RELEASE_DELETE_AFTER_PROCESS=true`，对应 asset 会被自动删除。
+4. 若 `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`，对应 asset 会被自动删除。
 
 ## 7. 常见问题
 - `401/403`：token 错误或权限不足。  

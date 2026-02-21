@@ -65,14 +65,14 @@ docker compose ps
 2. 运行 `AuraCap Setup Release Inbox` workflow 初始化 release inbox
 3. 在 iOS 快捷指令里执行：上传 Release Asset -> 触发工作流
 
-详细步骤：`USERGUIDE.md`、`docs/GITHUB_RELEASE_INBOX.md`
+详细步骤：`docs/USERGUIDE.md`、`docs/GITHUB_RELEASE_INBOX.md`
 
 ### GitHub-only 最小配置
-进入 `Settings -> Secrets and variables -> Actions`。必填 Variables（联调用 mock）：`TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER`、`OUTPUT_LOCALE`、`DEFAULT_TIMEZONE`、`GITHUB_RELEASE_INBOX_TAG`、`GITHUB_RELEASE_DELETE_AFTER_PROCESS`。用 OpenAI 时加 `OPENAI_API_KEY`（Secrets）。私有仓库 token 需 `Contents: Read and write`。详见 `USERGUIDE.md` 第 2.2 节。
+进入 `Settings -> Secrets and variables -> Actions`。必填 Variables（联调用 mock）：`TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER`、`OUTPUT_LOCALE`、`DEFAULT_TIMEZONE`、`AURACAP_RELEASE_INBOX_TAG`、`AURACAP_RELEASE_DELETE_AFTER_PROCESS`。注意：GitHub 不允许 Variable 名以 `GITHUB_` 开头。用 OpenAI 时加 `OPENAI_API_KEY`（Secrets）。私有仓库 token 需 `Contents: Read and write`。详见 `docs/USERGUIDE.md` 第 2.2 节。
 
 ### iOS 快捷指令
 - 路径 A：运行 `python scripts/build_shortcuts.py` 生成模板，导入 `shortcuts/templates/` 下的 `.shortcut` 文件。
-- 路径 B：按 `USERGUIDE.md` 第 2.4、2.5 节手动搭建；若用 GitHub App，见第 2.4.3、2.5.1。
+- 路径 B：按 `docs/USERGUIDE.md` 第 2.4、2.5 节手动搭建；若用 GitHub App，见第 2.4.3、2.5.1。
 
 ### API 一览
 - `POST /v1/capture/json` | `POST /v1/capture/upload` | `POST /v1/capture/raw`
@@ -82,7 +82,7 @@ docker compose ps
 `storage/timeline.md`、`storage/insights/`、`storage/summary/`、`storage/customized/`
 
 ### 文档索引
-- `USERGUIDE.md`
+- `docs/USERGUIDE.md`
 - `docs/GITHUB_RELEASE_INBOX.md`
 - `shortcuts/README.md`
 
@@ -142,14 +142,14 @@ docker compose ps
 2. Run `AuraCap Setup Release Inbox` workflow
 3. In iOS Shortcuts: upload Release Asset -> trigger workflow
 
-Full guide: `USERGUIDE.md` (section 7), `docs/GITHUB_RELEASE_INBOX.md`
+Full guide: `docs/USERGUIDE.md` (section 7), `docs/GITHUB_RELEASE_INBOX.md`
 
 ### GitHub-only Min Config
-In `Settings -> Secrets and variables -> Actions`, add Variables: `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER` (use `mock` for testing), `OUTPUT_LOCALE`, `DEFAULT_TIMEZONE`, `GITHUB_RELEASE_INBOX_TAG`, `GITHUB_RELEASE_DELETE_AFTER_PROCESS`. Add `OPENAI_API_KEY` (Secret) for OpenAI. Token needs `Contents: Read and write` for private repos.
+In `Settings -> Secrets and variables -> Actions`, add Variables: `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER` (use `mock` for testing), `OUTPUT_LOCALE`, `DEFAULT_TIMEZONE`, `AURACAP_RELEASE_INBOX_TAG`, `AURACAP_RELEASE_DELETE_AFTER_PROCESS`. Note: GitHub disallows variable names starting with `GITHUB_`. Add `OPENAI_API_KEY` (Secret) for OpenAI. Token needs `Contents: Read and write` for private repos.
 
 ### iOS Shortcuts
 - Path A: Run `python scripts/build_shortcuts.py` and import templates from `shortcuts/templates/`
-- Path B: Follow `USERGUIDE.md` sections 2.4 and 2.5; or use GitHub App flow in 2.4.3 and 2.5.1
+- Path B: Follow `docs/USERGUIDE.md` sections 2.4 and 2.5; or use GitHub App flow in 2.4.3 and 2.5.1
 
 ### API Summary
 - `POST /v1/capture/json` | `POST /v1/capture/upload` | `POST /v1/capture/raw`
@@ -159,7 +159,7 @@ In `Settings -> Secrets and variables -> Actions`, add Variables: `TEXT_PROVIDER
 `storage/timeline.md`, `storage/insights/`, `storage/summary/`, `storage/customized/`
 
 ### Docs
-- `USERGUIDE.md`
+- `docs/USERGUIDE.md`
 - `docs/GITHUB_RELEASE_INBOX.md`
 - `shortcuts/README.md`
 

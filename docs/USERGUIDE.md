@@ -70,7 +70,7 @@ python scripts/build_shortcuts.py
 5. 动作 `获取 URL 内容`：
 - 方法 `POST`
 - 请求正文 `文件`
-- 文件选“截取屏幕”输出
+- 文件选"截取屏幕"输出
 6. 动作 `显示结果`
 
 录音：
@@ -97,8 +97,8 @@ python scripts/build_shortcuts.py
 - `ASR_PROVIDER=mock`
 - `OUTPUT_LOCALE=zh-CN`
 - `DEFAULT_TIMEZONE=local`
-- `GITHUB_RELEASE_INBOX_TAG=auracap-inbox`
-- `GITHUB_RELEASE_DELETE_AFTER_PROCESS=true`
+- `AURACAP_RELEASE_INBOX_TAG=auracap-inbox`
+- `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`
 4. 再点 `Secrets` 页签，点击 `New repository secret` 添加模型 key。
 5. 推荐先把 `TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER` 统一为同一供应商，先跑通后再做混搭。
 
@@ -172,6 +172,11 @@ GOOGLE_BASE_URL=https://generativelanguage.googleapis.com
 1. 手动触发一次 `AuraCap Ingest Dispatch` 或跑一次 iOS 快捷指令。
 2. 在 Actions 日志里不再看到 `AUTH_FAILED`。
 3. `storage/timeline.md` 里出现非空提取内容，而不是 mock 文本。
+
+手动触发时，`Run workflow` 弹窗中的输入说明：
+- `media_type`：`screenshot`（截图）或 `audio`（录音）
+- `mime_type`：截图填 `image/png`，录音填 `audio/m4a`
+- `asset_id`：必填时填已上传的 Release Asset 的 id，否则留空会失败（用于验证 workflow 能否触发）
 
 #### 2.1.4 路径 A（本地/云部署）如何配 OpenAI/Gemini
 如果你走路径 A（自己跑后端），不是在 GitHub 页面配，而是改仓库根目录 `.env`。
@@ -250,7 +255,7 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 - 请求正文：`文件`
 - 文件：上一步截图
 - Header：
-  - `Authorization: Bearer <token>`
+  - `Authorization: Bearer <token>`（`<token>` 填 2.2 创建的 Fine-grained token，即 `AURACAP_GH_TOKEN` 的值；格式为 `Bearer ` 加空格再加 token）
   - `Accept: application/vnd.github+json`
   - `Content-Type: image/png`
 3. 动作：`获取字典值`，取返回 JSON 里的 `id`（记为 `asset_id`）
@@ -271,13 +276,13 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 - URL：`https://api.github.com/repos/<owner>/<repo>/dispatches`
 - 方法：`POST`
 - Header：
-  - `Authorization: Bearer <token>`
+  - `Authorization: Bearer <token>`（同上，填 2.2 的 token）
   - `Accept: application/vnd.github+json`
   - `Content-Type: application/json`
 - 请求正文：第 4 步 JSON
 6. 动作：`显示结果`
 
-### 2.4.3 可选优化：用 GitHub App 的“调度工作流程”替代手写 dispatch
+### 2.4.3 可选优化：用 GitHub App 的"调度工作流程"替代手写 dispatch
 如果你的 iPhone 已安装并登录 GitHub App，可把 2.4.2 的第 4-5 步替换成下面做法，减少手写 JSON 和 header。
 
 前提：
@@ -305,7 +310,7 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 - `Inputs`：上一步 `WF_INPUTS`
 - `Account`：你在 GitHub App 登录的账号
 4. 删掉 2.4.2 原来的第 4-5 步（手写 dispatch JSON + `POST /dispatches`）。
-5. 保留“显示结果”或改成“显示通知”。
+5. 保留"显示结果"或改成"显示通知"。
 
 ### 2.5 第五步：搭建 GitHub-only 录音快捷指令
 步骤与 2.4 相同，改两处：
@@ -326,7 +331,7 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 2. 如果用 GitHub App 调度：快捷指令动作执行成功且无参数错误提示
 3. Actions 出现 `AuraCap Ingest Dispatch` 运行记录
 4. 运行后 `storage/` 有新提交
-5. 若 `GITHUB_RELEASE_DELETE_AFTER_PROCESS=true`，对应上传 asset 会自动删除
+5. 若 `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`，对应上传 asset 会自动删除
 
 ### 2.7 路径 B 常见错误
 - `401/403`：token 错或权限不足
@@ -366,8 +371,8 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 4. 路径 B 没写入：检查 Actions 权限、dispatch 是否 `204`、`asset_id` 是否正确
 
 ## 6. 相关文档
-- GitHub-only Inbox 详解：`/Users/massif/AuraCap/docs/GITHUB_RELEASE_INBOX.md`
-- 模板快捷指令说明：`/Users/massif/AuraCap/shortcuts/README.md`
+- GitHub-only Inbox 详解：`GITHUB_RELEASE_INBOX.md`
+- 模板快捷指令说明：`../shortcuts/README.md`
 
 ## 7. English Summary
 
@@ -385,7 +390,7 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 ### Key Configuration
 - `EXTRACT_ONLY`: only extract to timeline (no insights/summary).
 - `INSIGHTS_TARGET_DAY_OFFSET`: 0=today, 1=yesterday (default).
-- `SYNC_DEFAULT_FREQUENCY`: ON_EVENT (immediate), DAILY/CRON (batch at cron time).
+- `SYNC_DEFAULT_FREQUENCY`: ON_EVENT (immediate), DAILY/CRON (batch at sync_default_cron time).
 
 ### Troubleshooting
 - `PAYLOAD_TOO_LARGE`: use `/v1/capture/raw` or `/v1/capture/upload`.

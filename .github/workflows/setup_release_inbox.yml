@@ -9,7 +9,7 @@ jobs:
     permissions:
       contents: write
     env:
-      GITHUB_RELEASE_INBOX_TAG: ${{ vars.GITHUB_RELEASE_INBOX_TAG || 'auracap-inbox' }}
+      GITHUB_RELEASE_INBOX_TAG: ${{ vars.AURACAP_RELEASE_INBOX_TAG || 'auracap-inbox' }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
