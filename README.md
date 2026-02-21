@@ -1,8 +1,16 @@
 # AuraCap
 
-Slogan: Capture the spark, let AI do the rest.
+![AuraCap Banner](docs/banner.png)
 
-Repo description: Turn your iOS screenshots into AI structured wisdom.
+[![License](https://img.shields.io/github/license/massif-01/AuraCap)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20GitHub%20Actions-lightgrey)](.)
+
+**ios** **shortcuts** **screenshot** **ai** **github-actions** **automation** **vision** **personal-productivity**
+
+---
+
+Turn your iOS screenshots into AI-structured wisdom—one-click setup with GitHub Actions, or self-host anywhere.
 
 ---
 
@@ -84,10 +92,14 @@ docker compose ps
 ### 文档索引
 - `docs/USERGUIDE.md`
 - `docs/GITHUB_RELEASE_INBOX.md`
+- `docs/TESTING_GITHUB_APP.md`（路径 B GitHub App 版测试流程）
 - `shortcuts/README.md`
 
 ### 规则
 全项目禁止 emoji；icon 仅允许 remixicon。
+
+### 协议
+[MIT License](LICENSE)
 
 ---
 
@@ -161,7 +173,11 @@ In `Settings -> Secrets and variables -> Actions`, add Variables: `TEXT_PROVIDER
 ### Docs
 - `docs/USERGUIDE.md`
 - `docs/GITHUB_RELEASE_INBOX.md`
+- `docs/TESTING_GITHUB_APP.md` (Path B GitHub App testing flow)
 - `shortcuts/README.md`
 
 ### Rules
 No emoji anywhere; icons must use remixicon.
+
+### License
+[MIT License](LICENSE)

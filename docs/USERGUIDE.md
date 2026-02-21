@@ -207,6 +207,41 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 - 本地运行：重启 `python backend/main.py`
 - Docker：`docker compose up -d --build`
 
+#### 2.1.5 OpenAI 兼容服务（SiliconFlow、OpenRouter、DeepSeek、通义等）
+
+AuraCap 的 `openai` provider 支持任意 OpenAI 兼容 API：只需改 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY`，即可接入第三方服务。
+
+**以 SiliconFlow 为例**（GitHub Actions Variables + Secrets）：
+
+Variables：
+- `TEXT_PROVIDER=openai`
+- `MM_PROVIDER=openai`
+- `ASR_PROVIDER=openai`（录音时）
+- `OPENAI_BASE_URL=https://api.siliconflow.cn/v1`（中国区）或 `https://api.siliconflow.com/v1`（国际区）
+- `OPENAI_TEXT_MODEL=Qwen/Qwen2.5-72B-Instruct`
+- `OPENAI_MM_MODEL=Qwen/Qwen2-VL-7B-Instruct`（需支持视觉的模型，具体以 SiliconFlow 文档为准）
+- `OPENAI_ASR_MODEL=`（若 SiliconFlow 提供 ASR 则填，否则可保持 mock 或留空）
+- `OUTPUT_LOCALE=zh-CN`
+- `DEFAULT_TIMEZONE=local`
+
+Secrets：
+- Name：`OPENAI_API_KEY`
+- Secret：你的 SiliconFlow API Key
+
+完整可复制版本（中国区）：
+```env
+TEXT_PROVIDER=openai
+MM_PROVIDER=openai
+ASR_PROVIDER=openai
+OPENAI_BASE_URL=https://api.siliconflow.cn/v1
+OPENAI_TEXT_MODEL=Qwen/Qwen2.5-72B-Instruct
+OPENAI_MM_MODEL=Qwen/Qwen2-VL-7B-Instruct
+OUTPUT_LOCALE=zh-CN
+DEFAULT_TIMEZONE=local
+```
+
+模型名需在对应服务文档中确认，如 [SiliconFlow 文档](https://docs.siliconflow.cn/)。其他 OpenAI 兼容服务（OpenRouter、DeepSeek、通义千问等）同理，只需换成该服务的 base URL 和模型名即可。
+
 ### 2.2 第二步：创建 GitHub Token（逐步点击版）
 你需要一个给 iOS 快捷指令使用的 GitHub token，用来上传 Release Asset 和触发 `repository_dispatch`。
 
@@ -372,6 +407,7 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 
 ## 6. 相关文档
 - GitHub-only Inbox 详解：`GITHUB_RELEASE_INBOX.md`
+- GitHub App 版测试流程：`TESTING_GITHUB_APP.md`
 - 模板快捷指令说明：`../shortcuts/README.md`
 
 ## 7. English Summary
