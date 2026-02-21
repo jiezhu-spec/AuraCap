@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: auracap-backend
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage:/app/storage
+      - ./prompts:/app/prompts
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: auracap-scheduler
+    env_file:
+      - .env
+    command: ["sh", "-c", "while true; do python scripts/run_scheduler_tick.py; sleep 3600; done"]
+    volumes:
+      - ./storage:/app/storage
+      - ./prompts:/app/prompts
+    restart: unless-stopped
+    depends_on:
+      - backend

@@ -1,0 +1,123 @@
+from __future__ import annotations
+
+import json
+from datetime import datetime, timedelta
+from pathlib import Path
+
+from backend.app.core.config import Settings
+from backend.app.providers.factory import ProviderBundle
+from backend.app.services.custom_operation import run_custom_operation
+from backend.app.services.insights import run_daily_insights
+from backend.app.services.summary import run_periodic_summary
+from backend.app.services.timeline import entries_by_day
+
+
+def _state_file(settings: Settings) -> Path:
+    return settings.storage_root / ".scheduler_state.json"
+
+
+def _load_state(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def _save_state(path: Path, state: dict) -> None:
+    path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _expand_token(token: str, minimum: int, maximum: int) -> set[int]:
+    values: set[int] = set()
+    if token == "*":
+        return set(range(minimum, maximum + 1))
+    for part in token.split(","):
+        p = part.strip()
+        if "/" in p:
+            base, step = p.split("/", 1)
+            step_i = int(step)
+            base_values = set(range(minimum, maximum + 1)) if base == "*" else _expand_token(base, minimum, maximum)
+            for val in sorted(base_values):
+                if (val - minimum) % step_i == 0:
+                    values.add(val)
+            continue
+        if "-" in p:
+            start, end = p.split("-", 1)
+            values.update(range(int(start), int(end) + 1))
+            continue
+        values.add(int(p))
+    return {v for v in values if minimum <= v <= maximum}
+
+
+def _matches_cron(cron_expr: str, dt: datetime) -> bool:
+    fields = cron_expr.split()
+    if len(fields) != 5:
+        return False
+    minute, hour, day, month, weekday = fields
+    checks = [
+        dt.minute in _expand_token(minute, 0, 59),
+        dt.hour in _expand_token(hour, 0, 23),
+        dt.day in _expand_token(day, 1, 31),
+        dt.month in _expand_token(month, 1, 12),
+        dt.weekday() in _expand_token(weekday, 0, 6),
+    ]
+    return all(checks)
+
+
+def _should_run(cron_expr: str, last_run_iso: str | None, now: datetime) -> bool:
+    if last_run_iso is None:
+        return _matches_cron(cron_expr, now)
+    last = datetime.fromisoformat(last_run_iso)
+    if now <= last:
+        return False
+    cursor = last.replace(second=0, microsecond=0)
+    end = now.replace(second=0, microsecond=0)
+    while cursor <= end:
+        if cursor > last and _matches_cron(cron_expr, cursor):
+            return True
+        cursor = cursor + timedelta(minutes=1)
+    return False
+
+
+async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = None) -> dict[str, str | None]:
+    now = now or datetime.now().astimezone()
+    state_path = _state_file(settings)
+    state = _load_state(state_path)
+
+    providers = ProviderBundle(settings)
+    results: dict[str, str | None] = {"insight": None, "summary": None, "custom": None}
+
+    if settings.enable_insights and _should_run(settings.insights_cron, state.get("insights_last"), now):
+        results["insight"] = await run_daily_insights(
+            settings=settings,
+            provider=providers.text,
+            target_day=now.date(),
+            timezone_name=settings.default_timezone,
+        )
+        state["insights_last"] = now.isoformat()
+
+    if settings.enable_summary and _should_run(settings.summary_cron, state.get("summary_last"), now):
+        results["summary"] = await run_periodic_summary(
+            settings=settings,
+            provider=providers.text,
+            now_day=now.date(),
+            timezone_name=settings.default_timezone,
+        )
+        state["summary_last"] = now.isoformat()
+
+    if settings.enable_custom_operation and settings.custom_operation_mode == "CRON":
+        if _should_run(settings.custom_operation_cron, state.get("custom_last"), now):
+            day_entries = entries_by_day(settings.timeline_file, now.date(), settings.default_timezone)
+            input_text = "\n".join(item["extracted_content"] for item in day_entries)
+            if input_text.strip():
+                results["custom"] = await run_custom_operation(
+                    settings=settings,
+                    provider=providers.text,
+                    input_text=input_text,
+                )
+            state["custom_last"] = now.isoformat()
+
+    _save_state(state_path, state)
+    return results

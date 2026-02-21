@@ -1,0 +1,22 @@
+name: AuraCap Setup Release Inbox
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GITHUB_RELEASE_INBOX_TAG: ${{ vars.GITHUB_RELEASE_INBOX_TAG || 'auracap-inbox' }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Ensure release inbox exists
+        run: python scripts/ensure_release_inbox.py

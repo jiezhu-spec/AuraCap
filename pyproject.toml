@@ -1,0 +1,29 @@
+[project]
+name = "auracap"
+version = "0.1.0"
+description = "Turn your iOS screenshots into AI structured wisdom."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.116.0",
+  "uvicorn[standard]>=0.35.0",
+  "pydantic>=2.11.0",
+  "python-multipart>=0.0.20",
+  "httpx>=0.28.1",
+  "apscheduler>=3.11.0",
+  "python-dateutil>=2.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.4.1",
+  "pytest-asyncio>=1.1.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
