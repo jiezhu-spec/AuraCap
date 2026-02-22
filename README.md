@@ -2,10 +2,13 @@
 
 > 让每一次截图与录音，都成为可追溯、可复用的长期资产。 | Turn every screenshot and recording into traceable, reusable long-term assets.
 
-[![Unique Architecture](https://img.shields.io/badge/Architecture-GitHub--Native%20Media%20Relay-blueviolet)](https://github.com/massif-01/AuraCap#unique-innovation-github-release-as-transient-middleware)
-[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20GitHub%20Actions-lightgrey)](.)
-[![License](https://img.shields.io/github/license/massif-01/AuraCap)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
+[![Unique Architecture](https://img.shields.io/badge/Architecture-GitHub--Native%20Media%20Relay-blueviolet?style=flat)](https://github.com/massif-01/AuraCap#unique-innovation-github-release-as-transient-middleware)
+[![Serverless](https://img.shields.io/badge/Serverless-Zero%20Cost-brightgreen?style=flat&logo=github)](https://github.com/massif-01/AuraCap)
+[![Releases as Queue](https://img.shields.io/badge/Innovation-Releases%20as%20Queue-orange?style=flat&logo=github-actions)](https://github.com/massif-01/AuraCap/blob/main/docs/GITHUB_RELEASE_INBOX.md)
+[![iOS Shortcuts](https://img.shields.io/badge/iOS-Shortcuts-black?style=flat&logo=apple&logoColor=white)](https://github.com/massif-01/AuraCap/tree/main/shortcuts)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20GitHub%20Actions-lightgrey?style=flat)](.)
+[![License](https://img.shields.io/github/license/massif-01/AuraCap?style=flat)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11-blue?style=flat)](https://www.python.org/)
 
 ---
 
