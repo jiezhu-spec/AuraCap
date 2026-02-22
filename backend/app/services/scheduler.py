@@ -62,12 +62,16 @@ def _matches_cron(cron_expr: str, dt: datetime) -> bool:
     if len(fields) != 5:
         return False
     minute, hour, day, month, weekday = fields
+    cron_wd = dt.isoweekday() % 7  # 0=Sun, 1=Mon, ..., 6=Sat (standard cron convention)
+    weekday_set = _expand_token(weekday, 0, 7)
+    if 7 in weekday_set:
+        weekday_set.add(0)  # standard cron: 7 is alias for Sunday (0)
     checks = [
         dt.minute in _expand_token(minute, 0, 59),
         dt.hour in _expand_token(hour, 0, 23),
         dt.day in _expand_token(day, 1, 31),
         dt.month in _expand_token(month, 1, 12),
-        dt.weekday() in _expand_token(weekday, 0, 6),
+        cron_wd in weekday_set,
     ]
     return all(checks)
 

@@ -90,8 +90,8 @@ jobs:
       ALLOWED_AUDIO_MIME: ${{ vars.ALLOWED_AUDIO_MIME || 'audio/m4a,audio/mp4,audio/mpeg,audio/wav,audio/x-wav' }}
 
       INSIGHTS_CRON: ${{ vars.INSIGHTS_CRON || '0 1 * * *' }}
-      SUMMARY_CRON: ${{ vars.SUMMARY_CRON || '0 2 */3 * *' }}
-      SUMMARY_WINDOW_DAYS: ${{ vars.SUMMARY_WINDOW_DAYS || '3' }}
+      SUMMARY_CRON: ${{ vars.SUMMARY_CRON || '0 2 * * 0' }}
+      SUMMARY_WINDOW_DAYS: ${{ vars.SUMMARY_WINDOW_DAYS || '7' }}
       CUSTOM_OPERATION_MODE: ${{ vars.CUSTOM_OPERATION_MODE || 'ON_EACH_TRIGGER' }}
       CUSTOM_OPERATION_CRON: ${{ vars.CUSTOM_OPERATION_CRON || '0 */6 * * *' }}
 

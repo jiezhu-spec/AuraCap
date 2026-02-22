@@ -31,6 +31,7 @@ class Settings(BaseModel):
     customized_prompt_file: Path = Path("prompts/customized_prompts.md")
 
     extract_only: bool = False
+    enable_scheduler: bool = True
     enable_insights: bool = True
     enable_summary: bool = True
     enable_custom_operation: bool = False
@@ -79,8 +80,8 @@ class Settings(BaseModel):
 
     insights_cron: str = "0 1 * * *"
     insights_target_day_offset: int = 1
-    summary_cron: str = "0 2 */3 * *"
-    summary_window_days: int = 3
+    summary_cron: str = "0 2 * * 0"
+    summary_window_days: int = 7
 
     custom_operation_mode: Literal["ON_EACH_TRIGGER", "CRON"] = "ON_EACH_TRIGGER"
     custom_operation_cron: str = "0 */6 * * *"

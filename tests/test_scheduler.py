@@ -1,12 +1,32 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
-from backend.app.core.config import Settings
-from backend.app.services.scheduler import run_scheduled_tasks_once
+from backend.app.core.config import Settings, get_settings
+from backend.app.services.scheduler import _matches_cron, run_scheduled_tasks_once
 from backend.app.services.timeline import append_timeline
+
+
+def test_weekday_cron_matches_sunday() -> None:
+    """Verify weekday field follows standard cron (0=Sunday)."""
+    # 2026-02-22 is Sunday; 2026-02-23 is Monday
+    sunday_0200 = datetime(2026, 2, 22, 2, 0, 0, tzinfo=timezone.utc)
+    monday_0200 = datetime(2026, 2, 23, 2, 0, 0, tzinfo=timezone.utc)
+    assert _matches_cron("0 2 * * 0", sunday_0200)
+    assert not _matches_cron("0 2 * * 0", monday_0200)
+
+
+def test_scheduler_enable_scheduler_false(monkeypatch, capsys) -> None:
+    """Verify run_scheduler_tick early return when ENABLE_SCHEDULER=false."""
+    monkeypatch.setenv("ENABLE_SCHEDULER", "false")
+    get_settings.cache_clear()
+    from scripts.run_scheduler_tick import main
+
+    asyncio.run(main())
+    out, _ = capsys.readouterr()
+    assert "skipping" in out
 
 
 def test_scheduler_runs_with_mock_provider(tmp_path: Path) -> None:

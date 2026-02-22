@@ -1,20 +1,22 @@
-# AuraCap 用户手册（小白可执行版）
+# AuraCap 用户手册
 
-## 0. 你先做一个选择
+**Language / 语言**：[中文](#中文) | [English](#english)
 
-### 路径 A：我有服务器/本机，可以跑后端
-- 你会得到一个 API 地址（例如 `https://cap.yourdomain.com`）
-- iOS 快捷指令直接把截图/录音发给这个地址
+---
 
-### 路径 B：我不想维护后端，只用 GitHub
-- 你不需要常驻后端
-- iOS 先上传文件到 GitHub Release Asset
-- iOS 再触发 `repository_dispatch`
-- GitHub Action 自动处理并写回 `storage/`
+<a name="中文"></a>
+## 中文
 
-如果你是小白，建议先走路径 B。
+### 0. 选择使用方式
 
-## 1. 路径 A（自部署/云部署）
+| 方式 | 条件 | 特点 |
+|------|------|------|
+| **GitHub-only** | 不希望维护服务器，希望尽量简化运维 | 上传截图至 Release 后触发 Workflow 自动处理 |
+| **自部署** | 有服务器，或本机可运行 Python / Docker | iOS 直接连接你的 API，响应快、可控性高 |
+
+两种方式都可独立使用：前者强调低维护成本与开箱即用，后者强调实时性与控制力。
+
+### 1. 自部署
 
 ### 1.1 本地部署
 ```bash
@@ -46,7 +48,7 @@ docker compose ps
 - 开 HTTPS
 - 只开放 80/443
 
-### 1.3 路径 A 的 iOS 快捷指令
+### 1.3 自部署的 iOS 快捷指令
 
 #### 方案 1：导入模板（推荐）
 1. 在仓库执行：
@@ -82,106 +84,31 @@ python scripts/build_shortcuts.py
 5. 动作 `获取 URL 内容`（POST + 文件）
 6. 动作 `显示结果`
 
-### 1.4 路径 A 成功判定
+### 1.4 自部署成功判定
 1. 快捷指令返回 JSON，含 `status: success`
 2. 本地或服务器的 `storage/timeline.md` 增加新记录
 
-## 2. 路径 B（GitHub-only，无外部中转）
+### 2. GitHub-only
 
-### 2.1 第一步：准备仓库与权限
-1. fork AuraCap 到你自己的 GitHub。
-2. 进入仓库：`Settings -> Secrets and variables -> Actions`。
-3. 先点 `Variables` 页签，逐个点击 `New repository variable` 添加以下变量：
-- `TEXT_PROVIDER=mock`
-- `MM_PROVIDER=mock`
-- `ASR_PROVIDER=mock`
-- `OUTPUT_LOCALE=zh-CN`
-- `DEFAULT_TIMEZONE=local`
-- `AURACAP_RELEASE_INBOX_TAG=auracap-inbox`
-- `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`
-4. 再点 `Secrets` 页签，点击 `New repository secret` 添加模型 key。
-5. 推荐先把 `TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER` 统一为同一供应商，先跑通后再做混搭。
+GitHub-only 模式下，你不需要常驻后端。iOS 将截图/录音上传到 GitHub Release Asset，再触发 Workflow；GitHub Actions 自动处理并写回 `storage/`。
 
-#### 2.1.1 OpenAI 实填示例（GitHub-only）
-在 `Settings -> Secrets and variables -> Actions` 中：
+**四步快速开始**：
+1. Fork 本仓库
+2. 在 `Settings -> Secrets and variables -> Actions` 中配置必要变量（可先用 `mock` 跑通）
+3. 运行一次 `AuraCap Setup Release Inbox` 工作流
+4. 按详细指南在 iPhone 上搭好快捷指令
 
-Variables 这样填：
-- `TEXT_PROVIDER=openai`
-- `MM_PROVIDER=openai`
-- `ASR_PROVIDER=openai`
-- `OPENAI_TEXT_MODEL=gpt-4.1-mini`
-- `OPENAI_MM_MODEL=gpt-4.1-mini`
-- `OPENAI_ASR_MODEL=gpt-4o-mini-transcribe`
-- `OUTPUT_LOCALE=zh-CN`
-- `DEFAULT_TIMEZONE=local`
+建议首次用 `mock` 模式完成端到端验证，再切换真实模型。**完整步骤与截图占位见 [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md)。**
 
-Secrets 这样填：
-- Name：`OPENAI_API_KEY`
-- Secret：`<你的OpenAI API Key>`
+### 3. 配置说明（两条路径通用）
 
-可选 Variables（不填也能跑）：
-- `OPENAI_BASE_URL=https://api.openai.com/v1`
+### 3.1 模型配置
 
-完整可复制版本：
-```env
-TEXT_PROVIDER=openai
-MM_PROVIDER=openai
-ASR_PROVIDER=openai
-OPENAI_TEXT_MODEL=gpt-4.1-mini
-OPENAI_MM_MODEL=gpt-4.1-mini
-OPENAI_ASR_MODEL=gpt-4o-mini-transcribe
-OUTPUT_LOCALE=zh-CN
-DEFAULT_TIMEZONE=local
-OPENAI_BASE_URL=https://api.openai.com/v1
-```
+**自部署**：在仓库根目录 `.env` 中配置。**GitHub-only**：在 `Settings -> Secrets and variables -> Actions` 的 Variables 和 Secrets 中配置。
 
-#### 2.1.2 Gemini 实填示例（GitHub-only）
-在 `Settings -> Secrets and variables -> Actions` 中：
+推荐先统一 `TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER` 为同一供应商，跑通后再混搭。
 
-Variables 这样填：
-- `TEXT_PROVIDER=google`
-- `MM_PROVIDER=google`
-- `ASR_PROVIDER=google`
-- `GOOGLE_TEXT_MODEL=gemini-2.0-flash`
-- `GOOGLE_MM_MODEL=gemini-2.0-flash`
-- `GOOGLE_ASR_MODEL=gemini-2.0-flash`
-- `OUTPUT_LOCALE=zh-CN`
-- `DEFAULT_TIMEZONE=local`
-
-Secrets 这样填：
-- Name：`GOOGLE_API_KEY`
-- Secret：`<你的Gemini API Key>`
-
-可选 Variables（不填也能跑）：
-- `GOOGLE_BASE_URL=https://generativelanguage.googleapis.com`
-
-完整可复制版本：
-```env
-TEXT_PROVIDER=google
-MM_PROVIDER=google
-ASR_PROVIDER=google
-GOOGLE_TEXT_MODEL=gemini-2.0-flash
-GOOGLE_MM_MODEL=gemini-2.0-flash
-GOOGLE_ASR_MODEL=gemini-2.0-flash
-OUTPUT_LOCALE=zh-CN
-DEFAULT_TIMEZONE=local
-GOOGLE_BASE_URL=https://generativelanguage.googleapis.com
-```
-
-#### 2.1.3 如何判断模型配置成功
-1. 手动触发一次 `AuraCap Ingest Dispatch` 或跑一次 iOS 快捷指令。
-2. 在 Actions 日志里不再看到 `AUTH_FAILED`。
-3. `storage/timeline.md` 里出现非空提取内容，而不是 mock 文本。
-
-手动触发时，`Run workflow` 弹窗中的输入说明：
-- `media_type`：`screenshot`（截图）或 `audio`（录音）
-- `mime_type`：截图填 `image/png`，录音填 `audio/m4a`
-- `asset_id`：必填时填已上传的 Release Asset 的 id，否则留空会失败（用于验证 workflow 能否触发）
-
-#### 2.1.4 路径 A（本地/云部署）如何配 OpenAI/Gemini
-如果你走路径 A（自己跑后端），不是在 GitHub 页面配，而是改仓库根目录 `.env`。
-
-OpenAI 示例：
+#### OpenAI（自部署 .env 示例）
 ```env
 TEXT_PROVIDER=openai
 MM_PROVIDER=openai
@@ -192,7 +119,10 @@ OPENAI_MM_MODEL=gpt-4.1-mini
 OPENAI_ASR_MODEL=gpt-4o-mini-transcribe
 ```
 
-Gemini 示例：
+#### OpenAI（GitHub-only Variables + Secrets）
+Variables：`TEXT_PROVIDER=openai`、`MM_PROVIDER=openai`、`ASR_PROVIDER=openai`、`OPENAI_TEXT_MODEL`、`OPENAI_MM_MODEL`、`OPENAI_ASR_MODEL`、`OUTPUT_LOCALE`、`DEFAULT_TIMEZONE`。Secrets：`OPENAI_API_KEY`。
+
+#### Gemini（自部署 .env 示例）
 ```env
 TEXT_PROVIDER=google
 MM_PROVIDER=google
@@ -203,232 +133,231 @@ GOOGLE_MM_MODEL=gemini-2.0-flash
 GOOGLE_ASR_MODEL=gemini-2.0-flash
 ```
 
-改完后重启服务：
-- 本地运行：重启 `python backend/main.py`
-- Docker：`docker compose up -d --build`
+#### Gemini（GitHub-only Variables + Secrets）
+Variables：`TEXT_PROVIDER=google`、`MM_PROVIDER=google`、`ASR_PROVIDER=google`、`GOOGLE_TEXT_MODEL`、`GOOGLE_MM_MODEL`、`GOOGLE_ASR_MODEL`、`OUTPUT_LOCALE`、`DEFAULT_TIMEZONE`。Secrets：`GOOGLE_API_KEY`。
 
-#### 2.1.5 OpenAI 兼容服务（SiliconFlow、OpenRouter、DeepSeek、通义等）
+#### OpenAI 兼容服务（SiliconFlow、OpenRouter、DeepSeek、通义等）
+只需改 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY`。以 SiliconFlow 为例：`OPENAI_BASE_URL=https://api.siliconflow.cn/v1`（中国区），模型名在 [SiliconFlow 文档](https://docs.siliconflow.cn/) 中确认。
 
-AuraCap 的 `openai` provider 支持任意 OpenAI 兼容 API：只需改 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY`，即可接入第三方服务。
+改完后：自部署重启 `python backend/main.py` 或 `docker compose up -d --build`；GitHub-only 无需重启。
 
-**以 SiliconFlow 为例**（GitHub Actions Variables + Secrets）：
+#### 如何判断模型配置成功
+1. 跑一次快捷指令或手动触发 `AuraCap Ingest Dispatch`
+2. Actions 日志中不再出现 `AUTH_FAILED`
+3. `storage/timeline.md` 出现非空提取内容
 
-Variables：
-- `TEXT_PROVIDER=openai`
-- `MM_PROVIDER=openai`
-- `ASR_PROVIDER=openai`（录音时）
-- `OPENAI_BASE_URL=https://api.siliconflow.cn/v1`（中国区）或 `https://api.siliconflow.com/v1`（国际区）
-- `OPENAI_TEXT_MODEL=Qwen/Qwen2.5-72B-Instruct`
-- `OPENAI_MM_MODEL=Qwen/Qwen2-VL-7B-Instruct`（需支持视觉的模型，具体以 SiliconFlow 文档为准）
-- `OPENAI_ASR_MODEL=`（若 SiliconFlow 提供 ASR 则填，否则可保持 mock 或留空）
-- `OUTPUT_LOCALE=zh-CN`
-- `DEFAULT_TIMEZONE=local`
-
-Secrets：
-- Name：`OPENAI_API_KEY`
-- Secret：你的 SiliconFlow API Key
-
-完整可复制版本（中国区）：
-```env
-TEXT_PROVIDER=openai
-MM_PROVIDER=openai
-ASR_PROVIDER=openai
-OPENAI_BASE_URL=https://api.siliconflow.cn/v1
-OPENAI_TEXT_MODEL=Qwen/Qwen2.5-72B-Instruct
-OPENAI_MM_MODEL=Qwen/Qwen2-VL-7B-Instruct
-OUTPUT_LOCALE=zh-CN
-DEFAULT_TIMEZONE=local
-```
-
-模型名需在对应服务文档中确认，如 [SiliconFlow 文档](https://docs.siliconflow.cn/)。其他 OpenAI 兼容服务（OpenRouter、DeepSeek、通义千问等）同理，只需换成该服务的 base URL 和模型名即可。
-
-### 2.2 第二步：创建 GitHub Token（逐步点击版）
-你需要一个给 iOS 快捷指令使用的 GitHub token，用来上传 Release Asset 和触发 `repository_dispatch`。
-
-按下面步骤做：
-1. 打开 GitHub 右上角头像，点 `Settings`。
-2. 左侧拉到最下面，点 `Developer settings`。
-3. 点 `Personal access tokens` -> `Fine-grained tokens`。
-4. 点 `Generate new token`。
-5. `Token name` 填：`auracap-ios-dispatch`（可自定义）。
-6. `Expiration` 选一个到期时间（建议先选 90 天，后续可续期）。
-7. `Repository access` 选：`Only select repositories`，然后只勾选你的 AuraCap fork 仓库。
-8. `Repository permissions` 里把 `Contents` 设为 `Read and write`。
-9. 点页面底部 `Generate token`。
-10. 复制生成的 token，放到快捷指令变量 `AURACAP_GH_TOKEN`。这个值只会显示一次，丢了就要重建。
-
-避免踩坑：
-1. 不要用过期 token。
-2. 不要选错仓库（必须是你实际触发 workflow 的那个 fork）。
-3. 不要把权限设成 `Read-only`，否则会上传/触发失败。
-
-### 2.3 第三步：初始化 Release Inbox（一键）
-1. 打开仓库 `Actions` 页面。
-2. 运行 workflow：`AuraCap Setup Release Inbox`。
-3. 运行结束后，在 Summary 里记下：
-- `release_id`
-- `upload_url`
-
-你后面在 iOS 里主要用 `release_id`。
-
-### 2.4 第四步：搭建 GitHub-only 截图快捷指令
-
-### 2.4.1 先建变量（文本动作）
-- `AURACAP_GH_OWNER`：你的 GitHub 用户名
-- `AURACAP_GH_REPO`：仓库名
-- `AURACAP_GH_TOKEN`：上一步创建的 token
-- `AURACAP_INBOX_RELEASE_ID`：第 2.3 得到的 release_id
-- `AURACAP_LOCALE`：`zh-CN`
-- `AURACAP_TIMEZONE`：`local` 或 `Asia/Shanghai`
-
-### 2.4.2 动作步骤
-1. 动作：`截取屏幕`
-2. 动作：`获取 URL 内容`（上传到 GitHub Release Asset）
-- URL：
-`https://uploads.github.com/repos/<owner>/<repo>/releases/<release_id>/assets?name=shot_<timestamp>.png`
-- 方法：`POST`
-- 请求正文：`文件`
-- 文件：上一步截图
-- Header：
-  - `Authorization: Bearer <token>`（`<token>` 填 2.2 创建的 Fine-grained token，即 `AURACAP_GH_TOKEN` 的值；格式为 `Bearer ` 加空格再加 token）
-  - `Accept: application/vnd.github+json`
-  - `Content-Type: image/png`
-3. 动作：`获取字典值`，取返回 JSON 里的 `id`（记为 `asset_id`）
-4. 动作：`文本`，填 dispatch JSON：
-```json
-{
-  "event_type": "auracap_ingest",
-  "client_payload": {
-    "media_type": "screenshot",
-    "mime_type": "image/png",
-    "asset_id": "<asset_id>",
-    "locale": "<locale>",
-    "timezone": "<timezone>"
-  }
-}
-```
-5. 动作：`获取 URL 内容`（dispatch）
-- URL：`https://api.github.com/repos/<owner>/<repo>/dispatches`
-- 方法：`POST`
-- Header：
-  - `Authorization: Bearer <token>`（同上，填 2.2 的 token）
-  - `Accept: application/vnd.github+json`
-  - `Content-Type: application/json`
-- 请求正文：第 4 步 JSON
-6. 动作：`显示结果`
-
-### 2.4.3 可选优化：用 GitHub App 的"调度工作流程"替代手写 dispatch
-如果你的 iPhone 已安装并登录 GitHub App，可把 2.4.2 的第 4-5 步替换成下面做法，减少手写 JSON 和 header。
-
-前提：
-1. 你的 workflow 支持 `workflow_dispatch`（本项目已支持）。
-2. 你知道 workflow 文件名（建议填 `ingest_dispatch.yml`）。
-3. 你已在 GitHub App 登录对应账号。
-
-替换步骤：
-1. 保留 2.4.2 的第 1-3 步，拿到 `asset_id`。
-2. 新增动作 `字典`，命名 `WF_INPUTS`，填入：
-```json
-{
-  "asset_id": "<asset_id>",
-  "media_type": "screenshot",
-  "mime_type": "image/png",
-  "locale": "<locale>",
-  "timezone": "<timezone>"
-}
-```
-3. 新增 GitHub 动作 `调度工作流程`，字段这样填：
-- `Owner`：`AURACAP_GH_OWNER`
-- `Workflow ID`：`ingest_dispatch.yml`
-- `Repository`：`AURACAP_GH_REPO`
-- `Branch / ref`：`main`（或你的默认分支）
-- `Inputs`：上一步 `WF_INPUTS`
-- `Account`：你在 GitHub App 登录的账号
-4. 删掉 2.4.2 原来的第 4-5 步（手写 dispatch JSON + `POST /dispatches`）。
-5. 保留"显示结果"或改成"显示通知"。
-
-### 2.5 第五步：搭建 GitHub-only 录音快捷指令
-步骤与 2.4 相同，改两处：
-- 上传 `Content-Type` 用 `audio/m4a`
-- dispatch 中改：
-  - `media_type=audio`
-  - `mime_type=audio/m4a`
-
-### 2.5.1 录音的 GitHub App 调度版（可选）
-如果你使用 2.4.3 的 GitHub App 调度方式，录音版只改 `WF_INPUTS` 两个字段：
-1. `media_type=audio`
-2. `mime_type=audio/m4a`
-
-其余 `Owner`、`Workflow ID`、`Repository`、`Branch / ref`、`Account` 保持一致。
-
-### 2.6 路径 B 成功判定
-1. 如果用手写 dispatch：接口返回 `204 No Content`
-2. 如果用 GitHub App 调度：快捷指令动作执行成功且无参数错误提示
-3. Actions 出现 `AuraCap Ingest Dispatch` 运行记录
-4. 运行后 `storage/` 有新提交
-5. 若 `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`，对应上传 asset 会自动删除
-
-### 2.7 路径 B 常见错误
-- `401/403`：token 错或权限不足
-- `404`：owner/repo/release_id 错
-- Action 不触发：`event_type` 不是 `auracap_ingest` 或 workflow 不在默认分支
-- Action 失败：asset 无法下载（被删、URL异常、权限问题）
-- GitHub App 的 `Inputs` 灰色：先填 `Owner / Workflow ID / Repository / Branch / Account`
-- GitHub App 报参数错误：检查 `Workflow ID` 是否填 `ingest_dispatch.yml`，以及 `WF_INPUTS` 是否含 `asset_id`
-
-## 3. 配置说明（两条路径通用）
-
-### 3.1 时间戳
+### 3.2 时间戳
 - 默认时区：`DEFAULT_TIMEZONE=local`
 - 格式：`TIMESTAMP_FORMAT`
 - 时间戳由服务端写入，不依赖 prompt 文本生成
 
-### 3.2 音频模式
+### 3.3 音频模式
 - `TRANSCRIBE_THEN_ANALYZE`
 - `DIRECT_MULTIMODAL`
 
-### 3.3 功能开关
-- `EXTRACT_ONLY`
+### 3.4 功能开关
+- `EXTRACT_ONLY`：为 `true` 时仅做提取，跳过 insights 与 summary
+- `ENABLE_SCHEDULER`：scheduler 总开关（默认 `true`）；为 `false` 时 GitHub Actions scheduler job 不运行、自部署脚本 early return；**不影响** HTTP 手动触发端点 `/v1/tasks/run-scheduled`
 - `ENABLE_INSIGHTS`
 - `ENABLE_SUMMARY`
 - `ENABLE_CUSTOM_OPERATION`
 
-## 4. 存储输出
+### 3.5 自动化调度
+
+| 变量 | 默认值 | 含义 |
+| ---- | ------ | ---- |
+| `INSIGHTS_CRON` | `0 1 * * *` | 洞察执行时间（每日 UTC 01:00） |
+| `SUMMARY_CRON` | `0 2 * * 0` | 摘要执行时间（每周日 UTC 02:00） |
+| `SUMMARY_WINDOW_DAYS` | `7` | 摘要覆盖天数 |
+| `ENABLE_SCHEDULER` | `true` | 是否启用自动调度 |
+
+- **时区**：GitHub Actions 中 cron 以 **UTC** 执行；自部署时由系统时区决定
+- **weekday 约定**：使用标准 cron（0=周日，6=周六，7 为周日的别名）
+- **Docker 场景**：`ENABLE_SCHEDULER=false` 时容器仍运行，但脚本立即退出；需完全停止可 `docker compose stop scheduler`
+- **示例**：每周一洞察 `0 8 * * 1`；每两周摘要 `0 2 * * 0` 并设 `SUMMARY_WINDOW_DAYS=14`
+
+### 4. 存储输出
 - `storage/timeline.md`
 - `storage/insights/`
 - `storage/summary/`
 - `storage/customized/`
 
-## 5. 排障清单
+### 5. 排障清单
 1. `PAYLOAD_TOO_LARGE`：改用 `/v1/capture/raw` 或 `/v1/capture/upload`
 2. `AUTH_FAILED`：检查 provider 与对应 key
-3. 路径 A 没写入：检查后端进程和 `storage/` 权限
-4. 路径 B 没写入：检查 Actions 权限、dispatch 是否 `204`、`asset_id` 是否正确
+3. 自部署没写入：检查后端进程和 `storage/` 权限
+4. GitHub-only 没写入：检查 Actions 权限、dispatch 是否 `204`、`asset_id` 是否正确
 
-## 6. 相关文档
-- GitHub-only Inbox 详解：`GITHUB_RELEASE_INBOX.md`
-- GitHub App 版测试流程：`TESTING_GITHUB_APP.md`
-- 模板快捷指令说明：`../shortcuts/README.md`
+### 6. 相关文档
+- [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md)：GitHub-only 完整指南（含截图占位）
+- [TESTING_GITHUB_APP.md](TESTING_GITHUB_APP.md)：GitHub App 版测试清单
+- [shortcuts/README.md](../shortcuts/README.md)：模板快捷指令说明
 
-## 7. English Summary
+---
 
-### Path A (Self-host / Cloud)
-- Run backend locally or on a server; iOS shortcuts POST to your API (`/v1/capture/raw`).
-- Configure via `.env`. Generate templates: `python scripts/build_shortcuts.py`.
-- Success: JSON `status: success`, new entries in `storage/timeline.md`.
+<a name="english"></a>
+## English
 
-### Path B (GitHub-only)
-- No backend required. iOS uploads to GitHub Release Asset, then triggers `repository_dispatch`.
-- Configure in `Settings -> Secrets and variables -> Actions`.
-- One-time setup: run `AuraCap Setup Release Inbox`, create token with `Contents: Read and write`.
-- Success: Dispatch returns 204, Actions run, `storage/` updated.
+### 0. Choose Your Mode
 
-### Key Configuration
-- `EXTRACT_ONLY`: only extract to timeline (no insights/summary).
-- `INSIGHTS_TARGET_DAY_OFFSET`: 0=today, 1=yesterday (default).
-- `SYNC_DEFAULT_FREQUENCY`: ON_EVENT (immediate), DAILY/CRON (batch at sync_default_cron time).
+| Mode | Requirement | Characteristics |
+|------|-------------|-----------------|
+| **GitHub-only** | No server maintenance; minimal ops | Upload to Release, trigger Workflow; processing is automatic |
+| **Self-host** | Server or local Python/Docker | iOS connects directly to your API; fast response, full control |
 
-### Troubleshooting
-- `PAYLOAD_TOO_LARGE`: use `/v1/capture/raw` or `/v1/capture/upload`.
-- `AUTH_FAILED`: check provider and API key.
-- Path B no write: check token permissions, `event_type=auracap_ingest`, `asset_id` correct.
+Both can be used independently: the former emphasizes low maintenance and out-of-the-box use, the latter emphasizes real-time control.
+
+### 1. Self-host
+
+#### 1.1 Local Deployment
+```bash
+git clone <your-fork-or-repo-url>
+cd AuraCap
+cp .env.example .env
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python backend/main.py
+```
+
+Verify:
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+#### 1.2 Cloud / Docker Deployment
+```bash
+git clone <your-fork-or-repo-url>
+cd AuraCap
+cp .env.example .env
+docker compose up -d --build
+docker compose ps
+```
+
+Recommendations:
+- Use Nginx/Caddy to reverse-proxy to `127.0.0.1:8000`
+- Enable HTTPS
+- Expose only ports 80/443
+
+#### 1.3 iOS Shortcuts for Self-host
+
+**Option 1: Import templates (recommended)**
+1. In the repo, run:
+```bash
+python scripts/build_shortcuts.py
+```
+2. Import to iPhone: `shortcuts/templates/AuraCap_Capture.shortcut`, `shortcuts/templates/AuraCap_Voice.shortcut`
+3. On first run, enter `AuraCap Backend Base URL` (e.g. `http://192.168.1.23:8000` for LAN, `https://cap.yourdomain.com` for cloud)
+
+**Option 2: Manual setup**
+Screenshot: Create shortcut with `Text` (URL), `URL`, `Take Screenshot`, `Get Contents of URL` (POST, body: File, file: screenshot output), `Show Result`.
+Audio: Same flow with `Record Audio`, `audio/m4a` in URL params.
+
+#### 1.4 Success Criteria
+1. Shortcut returns JSON with `status: success`
+2. `storage/timeline.md` on server gains new entries
+
+### 2. GitHub-only
+
+No persistent backend. iOS uploads screenshots/recordings to GitHub Release Asset, triggers Workflow; GitHub Actions processes and writes to `storage/`.
+
+**Four-step quick start**:
+1. Fork this repository
+2. Configure variables under `Settings -> Secrets and variables -> Actions` (use `mock` first to verify)
+3. Run `AuraCap Setup Release Inbox` workflow once
+4. Follow the detailed guide to set up shortcuts on iPhone
+
+Start with `mock` mode for end-to-end verification, then switch to real models. **Full steps and screenshot placeholders: [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md).**
+
+### 3. Configuration (Both Modes)
+
+#### 3.1 Model Configuration
+
+**Self-host**: Configure in root `.env`. **GitHub-only**: Configure in `Settings -> Secrets and variables -> Actions` (Variables and Secrets).
+
+Use the same provider for `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER` initially; mix after it works.
+
+#### OpenAI (Self-host .env example)
+```env
+TEXT_PROVIDER=openai
+MM_PROVIDER=openai
+ASR_PROVIDER=openai
+OPENAI_API_KEY=<your-key>
+OPENAI_TEXT_MODEL=gpt-4.1-mini
+OPENAI_MM_MODEL=gpt-4.1-mini
+OPENAI_ASR_MODEL=gpt-4o-mini-transcribe
+```
+
+#### OpenAI (GitHub-only Variables + Secrets)
+Variables: `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER`, `OPENAI_TEXT_MODEL`, `OPENAI_MM_MODEL`, `OPENAI_ASR_MODEL`, `OUTPUT_LOCALE`, `DEFAULT_TIMEZONE`. Secrets: `OPENAI_API_KEY`.
+
+#### Gemini (Self-host .env example)
+```env
+TEXT_PROVIDER=google
+MM_PROVIDER=google
+ASR_PROVIDER=google
+GOOGLE_API_KEY=<your-key>
+GOOGLE_TEXT_MODEL=gemini-2.0-flash
+GOOGLE_MM_MODEL=gemini-2.0-flash
+GOOGLE_ASR_MODEL=gemini-2.0-flash
+```
+
+#### Gemini (GitHub-only Variables + Secrets)
+Variables: `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER`, `GOOGLE_*_MODEL`, `OUTPUT_LOCALE`, `DEFAULT_TIMEZONE`. Secrets: `GOOGLE_API_KEY`.
+
+#### OpenAI-compatible services (SiliconFlow, OpenRouter, DeepSeek, etc.)
+Change `OPENAI_BASE_URL` and `OPENAI_API_KEY`. For SiliconFlow: `OPENAI_BASE_URL=https://api.siliconflow.cn/v1` (China). See [SiliconFlow docs](https://docs.siliconflow.cn/) for model names.
+
+After changes: Self-host restart `python backend/main.py` or `docker compose up -d --build`; GitHub-only needs no restart.
+
+#### Verifying model config
+1. Run shortcut or manually trigger `AuraCap Ingest Dispatch`
+2. No `AUTH_FAILED` in Actions logs
+3. Non-empty content in `storage/timeline.md`
+
+### 3.2 Timestamp
+- Default timezone: `DEFAULT_TIMEZONE=local`
+- Format: `TIMESTAMP_FORMAT`
+- Timestamp written server-side
+
+### 3.3 Audio Mode
+- `TRANSCRIBE_THEN_ANALYZE`
+- `DIRECT_MULTIMODAL`
+
+### 3.4 Feature Flags
+- `EXTRACT_ONLY`: when `true`, only extract; skip insights and summary
+- `ENABLE_SCHEDULER`: master switch for scheduler (default `true`); when `false`, GitHub Actions scheduler job is skipped, self-host script exits early; **does not affect** HTTP manual trigger `/v1/tasks/run-scheduled`
+- `ENABLE_INSIGHTS`
+- `ENABLE_SUMMARY`
+- `ENABLE_CUSTOM_OPERATION`
+
+### 3.5 Scheduler
+
+| Variable | Default | Meaning |
+| -------- | ------- | ------- |
+| `INSIGHTS_CRON` | `0 1 * * *` | Insights run time (daily, UTC 01:00) |
+| `SUMMARY_CRON` | `0 2 * * 0` | Summary run time (weekly Sunday, UTC 02:00) |
+| `SUMMARY_WINDOW_DAYS` | `7` | Summary window in days |
+| `ENABLE_SCHEDULER` | `true` | Enable automatic scheduling |
+
+- **Timezone**: Cron runs in **UTC** on GitHub Actions; self-host uses system timezone
+- **Weekday convention**: Standard cron (0=Sunday, 6=Saturday, 7=Sunday alias)
+- **Docker**: When `ENABLE_SCHEDULER=false`, container still runs but script exits immediately; use `docker compose stop scheduler` to fully stop
+- **Examples**: Weekly Monday insights `0 8 * * 1`; bi-weekly summary `0 2 * * 0` with `SUMMARY_WINDOW_DAYS=14`
+
+### 4. Storage Output
+- `storage/timeline.md`
+- `storage/insights/`
+- `storage/summary/`
+- `storage/customized/`
+
+### 5. Troubleshooting
+1. `PAYLOAD_TOO_LARGE`: use `/v1/capture/raw` or `/v1/capture/upload`
+2. `AUTH_FAILED`: check provider and API key
+3. Self-host no write: check backend process and `storage/` permissions
+4. GitHub-only no write: check Actions permissions, dispatch returns 204, `asset_id` correct
+
+### 6. Related Docs
+- [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md): GitHub-only full guide (with screenshot placeholders)
+- [TESTING_GITHUB_APP.md](TESTING_GITHUB_APP.md): GitHub App test checklist
+- [shortcuts/README.md](../shortcuts/README.md): Shortcut templates

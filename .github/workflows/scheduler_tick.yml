@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   scheduler:
+    if: ${{ vars.ENABLE_SCHEDULER != 'false' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -63,8 +64,8 @@ jobs:
 
       INSIGHTS_CRON: ${{ vars.INSIGHTS_CRON || '0 1 * * *' }}
       INSIGHTS_TARGET_DAY_OFFSET: ${{ vars.INSIGHTS_TARGET_DAY_OFFSET || '1' }}
-      SUMMARY_CRON: ${{ vars.SUMMARY_CRON || '0 2 */3 * *' }}
-      SUMMARY_WINDOW_DAYS: ${{ vars.SUMMARY_WINDOW_DAYS || '3' }}
+      SUMMARY_CRON: ${{ vars.SUMMARY_CRON || '0 2 * * 0' }}
+      SUMMARY_WINDOW_DAYS: ${{ vars.SUMMARY_WINDOW_DAYS || '7' }}
       CUSTOM_OPERATION_MODE: ${{ vars.CUSTOM_OPERATION_MODE || 'ON_EACH_TRIGGER' }}
       CUSTOM_OPERATION_CRON: ${{ vars.CUSTOM_OPERATION_CRON || '0 */6 * * *' }}
 

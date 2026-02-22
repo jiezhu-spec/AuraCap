@@ -1,10 +1,19 @@
-# AuraCap 测试流程（GitHub App 版本）
+# AuraCap Test Flow (GitHub App)
+
+**Language / 语言**：[中文](#中文) | [English](#english)
+
+---
+
+<a name="中文"></a>
+## 中文
+
+本流程已整合进 [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md) 作为主指南，本文档保留为测试清单与快速参考。
 
 本流程按用户实际操作顺序编写，逐项完成后即可正常使用。**前置条件**：iPhone 已安装 [GitHub App](https://apps.apple.com/app/github/id1477376905) 并登录你的 GitHub 账号。
 
 ---
 
-## 一、在 GitHub 上的准备
+### 一、在 GitHub 上的准备
 
 ### 步骤 1：Fork 仓库
 
@@ -24,9 +33,9 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` |
 | `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` |
 
-说明：GitHub 不允许变量名以 `GITHUB_` 开头，故使用 `AURACAP_` 前缀。mock 模式无需配置 Secrets。
+说明：GitHub 不允许变量名以 `GITHUB_` 开头，故使用 `AURACAP_` 前缀。mock 模式无需配置 Secrets。调度相关变量详见 [USERGUIDE.md § 3.5 自动化调度](USERGUIDE.md#35-自动化调度)。
 
-若使用真实模型（如 Google、OpenAI、SiliconFlow 等），需额外配置：`MM_PROVIDER`、`GOOGLE_MM_MODEL` / `OPENAI_MM_MODEL`、对应 API Key（Secrets）等，详见 `docs/USERGUIDE.md` 第 2.1 节及 2.1.5（OpenAI 兼容服务）。
+若使用真实模型（如 Google、OpenAI、SiliconFlow 等），需额外配置 Variables 和 Secrets，详见 [USERGUIDE.md 配置说明](USERGUIDE.md#3-配置说明两条路径通用)。
 
 ### 步骤 3：创建 Fine-grained Token
 
@@ -47,7 +56,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ---
 
-## 二、在 iPhone 上搭快捷指令
+### 二、在 iPhone 上搭快捷指令
 
 ### 步骤 5：新建快捷指令并添加变量
 
@@ -119,6 +128,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 |----------------|----------------|
 | `Authorization` | 点右边值栏 →「选择变量」→ 选「**文本(Bearer)**」（即步骤 6 的文本动作输出） |
 | `Accept` | 直接输入 `application/vnd.github+json` |
+| `Content-Type` | 直接输入 `image/png` |
 
 ### 步骤 10：添加「获取词典值」——取 asset_id
 
@@ -165,7 +175,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ---
 
-## 三、实测与验证
+### 三、实测与验证
 
 ### 步骤 14：运行快捷指令
 
@@ -180,7 +190,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ---
 
-## 四、常见问题
+### 四、常见问题
 
 | 现象 | 可能原因 | 处理 |
 |------|----------|------|
@@ -191,11 +201,71 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ---
 
-## 五、录音版快捷指令
+### 五、录音版快捷指令
 
-在截图版基础上，修改以下两处：
+在截图版基础上，修改以下三处：
 
 1. 步骤 7「截取屏幕」改为「录制音频」
-2. 步骤 11（词典）：`media_type` 改为 `audio`，`mime_type` 改为 `audio/m4a`
+2. 步骤 9（上传）的 Header：`Content-Type` 改为 `audio/m4a`
+3. 步骤 11（词典）：`media_type` 改为 `audio`，`mime_type` 改为 `audio/m4a`
 
 其余步骤不变。
+
+---
+
+<a name="english"></a>
+## English
+
+This flow is consolidated into [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md) as the primary guide. This doc remains as a test checklist and quick reference.
+
+Steps follow actual user flow. **Prerequisite**: iPhone has [GitHub App](https://apps.apple.com/app/github/id1477376905) and GitHub account logged in.
+
+---
+
+### Part I: GitHub Preparation
+
+#### Step 1: Fork Repository
+Fork `AuraCap` to your GitHub account.
+
+#### Step 2: Configure Variables
+`Settings -> Secrets and variables -> Actions` -> Variables. Add: `TEXT_PROVIDER=mock`, `MM_PROVIDER=mock`, `ASR_PROVIDER=mock`, `OUTPUT_LOCALE=zh-CN`, `DEFAULT_TIMEZONE=local`, `AURACAP_RELEASE_INBOX_TAG=auracap-inbox`, `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`. Mock needs no Secrets. For scheduler variables, see [USERGUIDE § 3.5 Scheduler](USERGUIDE.md#35-scheduler). For real models, see [USERGUIDE config](USERGUIDE.md#3-configuration-both-modes).
+
+#### Step 3: Create Fine-grained Token
+Profile -> Settings -> Developer settings -> Personal access tokens -> Fine-grained -> Generate. `Contents` = Read and write. Copy token (shown once).
+
+#### Step 4: Initialize Release Inbox
+Actions -> `AuraCap Setup Release Inbox` -> Run workflow. Copy `release_id` from step `Ensure release inbox exists` log.
+
+---
+
+### Part II: Build Shortcut on iPhone
+
+#### Steps 5–13
+One shortcut. 6 variable pairs (Text + Set Variable): `AURACAP_GH_OWNER`, `AURACAP_GH_REPO`, `AURACAP_GH_TOKEN`, `AURACAP_INBOX_RELEASE_ID`, `AURACAP_LOCALE`, `AURACAP_TIMEZONE`. Then: Text(Bearer) -> Screenshot -> Text(URL) -> Get Contents of URL (upload) -> Get Dictionary Value (key `id`) -> Dictionary (WF_INPUTS) -> Run Workflow -> Show Notification (optional). Full details in [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md).
+
+---
+
+### Part III: Test and Verify
+
+#### Step 14: Run Shortcut
+Run on iPhone. Screenshot, upload, trigger workflow.
+
+#### Step 15: Verify
+No shortcut error. Actions has new `AuraCap Ingest Dispatch` run. `storage/timeline.md` updated. Asset deleted if `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`.
+
+---
+
+### Part IV: Common Issues
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Inputs grey | Required fields empty | Fill Owner, Workflow ID, Repository, Branch, Account |
+| 401/403 | Token invalid | Check expiry, Contents: Read and write |
+| 404 | Wrong owner/repo/release_id | Verify variables |
+| Not triggered | Parameter error | Workflow ID = `ingest_dispatch.yml`, WF_INPUTS has `asset_id` |
+
+---
+
+### Part V: Voice Recording Shortcut
+
+Same as screenshot. Change: Step 7 Screenshot -> Record Audio; Step 9 `Content-Type` -> `audio/m4a`; Step 11 `media_type` = `audio`, `mime_type` = `audio/m4a`.

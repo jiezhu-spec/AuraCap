@@ -9,6 +9,9 @@ from backend.app.services.scheduler import run_scheduled_tasks_once
 
 async def main() -> None:
     settings = get_settings()
+    if not settings.enable_scheduler:
+        print("ENABLE_SCHEDULER=false, skipping scheduler tick.")
+        return
     result = await run_scheduled_tasks_once(settings)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
