@@ -76,8 +76,8 @@ AuraCap 最终采取了一种些许"黑客精神"的方案：**利用 GitHub Rel
 
 **GitHub-only（推荐）**
 
-1. Fork 本仓库
-2. 在仓库 `Settings -> Secrets and variables -> Actions` 中配置必要变量（可先使用 `mock` 跑通流程）
+1. Fork 本仓库（**隐私提醒**：Fork 后请将仓库设为 Private，否则截图/录音会对外可见）
+2. 在仓库 `Settings -> Secrets and variables -> Actions` 中配置必要变量（如 TEXT_PROVIDER、MM_PROVIDER、OUTPUT_LOCALE 等，可先使用 `mock` 跑通流程；详见 [GITHUB_RELEASE_INBOX 步骤 2](docs/GITHUB_RELEASE_INBOX.md#步骤-2配置-variables)）
 3. 运行一次 `AuraCap Setup Release Inbox` 工作流
 4. 按用户手册在 iPhone 上搭好快捷指令（或 [下载已脱敏模板（截图）](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/19b273bd82af4458aee7623f79dd7f11)，导入后仅填写个人信息即可）
 
@@ -89,11 +89,13 @@ AuraCap 最终采取了一种些许"黑客精神"的方案：**利用 GitHub Rel
 git clone <your-fork-or-repo-url>
 cd AuraCap
 cp .env.example .env
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python backend/main.py
 ```
 
-或使用 Docker：`docker compose up -d --build`。浏览器访问 `http://127.0.0.1:8000/health`，出现响应即表示服务启动成功。随后在 iOS 快捷指令中填入你的 API 地址。
+或使用 Docker：`docker compose up -d --build`。浏览器访问 `http://127.0.0.1:8000/health`，出现响应即表示服务启动成功。首次运行快捷指令时会提示输入 AuraCap Backend Base URL（如 `http://192.168.1.23:8000` 或 `https://cap.yourdomain.com`）。
 
 ### 会得到什么输出
 
@@ -187,8 +189,8 @@ Both can be used independently: the former emphasizes low maintenance and out-of
 
 **GitHub-only (recommended)**
 
-1. Fork this repository
-2. Configure required variables under `Settings -> Secrets and variables -> Actions` (use `mock` first to verify the flow)
+1. Fork this repository (**Privacy**: Set your fork to Private, or screenshots/recordings will be publicly visible.)
+2. Configure required variables under `Settings -> Secrets and variables -> Actions` (e.g. TEXT_PROVIDER, MM_PROVIDER, OUTPUT_LOCALE; use `mock` first to verify; see [GITHUB_RELEASE_INBOX Step 2](docs/GITHUB_RELEASE_INBOX.md#step-2-configure-variables))
 3. Run the `AuraCap Setup Release Inbox` workflow once
 4. Set up the shortcut on your iPhone following the [user guide](docs/USERGUIDE.md) (or [Screenshot template](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985), [Voice template](https://www.icloud.com/shortcuts/19b273bd82af4458aee7623f79dd7f11)—fill in your personal info only)
 
@@ -200,11 +202,13 @@ Start with `mock` mode to complete an end-to-end run, then switch to OpenAI, Gem
 git clone <your-fork-or-repo-url>
 cd AuraCap
 cp .env.example .env
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python backend/main.py
 ```
 
-Or use Docker: `docker compose up -d --build`. Visit `http://127.0.0.1:8000/health` in your browser; a response means the service is up. Then add your API base URL in the iOS shortcut.
+Or use Docker: `docker compose up -d --build`. Visit `http://127.0.0.1:8000/health` in your browser; a response means the service is up. On first run, the shortcut will prompt for AuraCap Backend Base URL (e.g. `http://192.168.1.23:8000` or `https://cap.yourdomain.com`).
 
 ### Output
 

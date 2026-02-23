@@ -19,6 +19,8 @@
 
 Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fork 上。
 
+**隐私提醒**：截图/录音会上传到 Release，可能含敏感信息。Fork 后默认是公开仓库，请务必在 `Settings -> General` 中将其设为 **Private**，否则任何人可访问你的 Release 文件。
+
 ### 步骤 2：配置 Variables
 
 进入 `Settings -> Secrets and variables -> Actions`，点 `Variables` 页签，添加：
@@ -28,10 +30,15 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `TEXT_PROVIDER` | `mock` | 文本分析（insights、summary、录音转写后分析） |
 | `MM_PROVIDER` | `mock` | 多模态（截图分析、DIRECT_MULTIMODAL 下录音） |
 | `ASR_PROVIDER` | `mock` | 语音转文字（仅 TRANSCRIBE_THEN_ANALYZE 模式） |
-| `OUTPUT_LOCALE` | `zh-CN` | 输出语言 |
-| `DEFAULT_TIMEZONE` | `local` | 时间戳时区 |
-| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | Inbox Release 标签 |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | 处理后删除 asset |
+| `OUTPUT_LOCALE` | `zh-CN` | 输出语言（`zh-CN` 或 `en-US`） |
+| `DEFAULT_TIMEZONE` | `local` | timeline 和 insights/summary 中时间戳的时区 |
+| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | 存放待处理截图/录音的 Release 的 tag 名称 |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | 处理完成后是否从 Release 上删除已上传的截图/录音文件；`false` 时文件会保留并堆积 |
+| `UNIFIED_PROVIDER`（可选） | 留空 | 统一模式：设为 `openai`、`google` 等时，TEXT/MM/ASR 均用同一 provider |
+
+**存储提醒**：`AURACAP_RELEASE_DELETE_AFTER_PROCESS=false` 时，文件会留在 Release 中累积。GitHub 仓库有大小限制（软限制约 1GB），超出后新上传会失败，建议保持 `true`。
+
+完整变量说明见 [USERGUIDE 3.7 变量参考速查表](USERGUIDE.md#37-变量参考速查表)。**必配与可选**：mock 模式全可选；真实模型需配对应 Secrets + provider 变量。详见 [USERGUIDE 3.7](USERGUIDE.md#37-变量参考速查表)。
 
 说明：GitHub 不允许变量名以 `GITHUB_` 开头，故使用 `AURACAP_` 前缀。mock 模式无需配置 Secrets。调度相关变量详见 [USERGUIDE.md § 3.5 自动化调度](USERGUIDE.md#35-自动化调度)。
 
@@ -52,7 +59,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 2. 左侧选择 `AuraCap Setup Release Inbox`
 3. 点击 `Run workflow` -> `Run workflow`
 4. 运行完成后，点击该次运行 -> 点击 job `setup` -> 展开步骤 **`Ensure release inbox exists`**
-5. 在**步骤日志**中复制 `release_id` 的数值（例如 `123456789`），保存到备忘录
+5. 在步骤输出的 JSON 中找到 `"release_id": 123456789` 格式，复制其中的数字，保存到备忘录
 
 ---
 
@@ -65,14 +72,14 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 1. **「文本」动作**：搜索「文本」，添加后往文本框里填**值**
 2. **「设定变量」动作**：搜索「设定变量」，添加；上一步的文本会自动接到「输入」；**点「变量名称」那一行**，输入下表中的变量名
 
-| 第几组 | 变量名（在「变量名称」里填） | 值（文本动作里填） |
-|--------|-----------------------------|---------------------|
-| 1 | `AURACAP_GH_OWNER` | 你的 GitHub 用户名（如 `massif-01`） |
-| 2 | `AURACAP_GH_REPO` | `AuraCap` |
-| 3 | `AURACAP_GH_TOKEN` | 步骤 3 复制的 token |
-| 4 | `AURACAP_INBOX_RELEASE_ID` | 步骤 4 得到的 `release_id` 数值 |
-| 5 | `AURACAP_LOCALE` | `zh-CN` |
-| 6 | `AURACAP_TIMEZONE` | `local` |
+| 第几组 | 变量名（在「变量名称」里填） | 值（文本动作里填） | 必配/可选 |
+|--------|-----------------------------|---------------------|-----------|
+| 1 | `AURACAP_GH_OWNER` | 你的 GitHub 用户名（如 `massif-01`） | 必配；错则 404 |
+| 2 | `AURACAP_GH_REPO` | `AuraCap`（若 fork 后改了仓库名，填新名） | 必配；错则 404 |
+| 3 | `AURACAP_GH_TOKEN` | 步骤 3 复制的 token | 必配；错/过期则 401/403 |
+| 4 | `AURACAP_INBOX_RELEASE_ID` | 步骤 4 得到的 `release_id` 数值 | 必配；错则 404 |
+| 5 | `AURACAP_LOCALE` | `zh-CN` 或 `en-US`，建议与 OUTPUT_LOCALE 一致 | 可选；不传则用 OUTPUT_LOCALE |
+| 6 | `AURACAP_TIMEZONE` | `local` 或 IANA 时区（如 `Asia/Shanghai`），建议与 DEFAULT_TIMEZONE 一致 | 可选；不传则用 DEFAULT_TIMEZONE |
 
 提示：底部搜索框输入「设定变量」或「变量」，在「脚本」分类里找；添加后该动作会显示「输入」「变量名称」两行，点「变量名称」即可输入名字。完成后共 12 个动作（6 组「文本」+「设定变量」），后面再接截屏、上传等。
 
@@ -130,20 +137,20 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `Accept` | 直接输入 `application/vnd.github+json` |
 | `Content-Type` | 直接输入 `image/png` |
 
-### 步骤 10：添加「获取词典值」——取 asset_id
+### 步骤 10：添加「获取词典值」——取上传后的文件 ID
 
 搜索「获取词典值」，添加在「获取 URL 内容」正下方。此时自动接入上一步的返回结果，不需要手动改。然后：
 
-1. 点「**键**」→ 输入 `id`
+1. 点「**键**」→ 输入 `id`（GitHub 返回的 asset_id，用于标识刚上传的截图/录音文件）
 2. 「获取」保持「值」不变
 
-### 步骤 11：添加「词典」——构造 WF_INPUTS
+### 步骤 11：添加「词典」——构造传给 Workflow 的输入参数
 
-搜索「**词典**」，添加。点「添加新项目」依次添加 5 个条目，每次点「添加新项目」后选「**文本**」类型：
+搜索「**词典**」，添加。点「添加新项目」依次添加 5 个条目，每次点「添加新项目」后选「**文本**」类型。这些键值将作为「调度工作流程」的 Inputs 传给 GitHub Actions：
 
 | 左边（键）填 | 右边（值）填 |
 |-------------|-------------|
-| `asset_id` | 点右边值栏 →「选择变量」→ 选「**获取词典值**」的输出 |
+| `asset_id` | 点右边值栏 →「选择变量」→ 选「**获取词典值**」的输出（即步骤 10 取到的上传文件 ID） |
 | `media_type` | 直接输入 `screenshot` |
 | `mime_type` | 直接输入 `image/png` |
 | `locale` | 点右边值栏 →「选择变量」→ 选 `AURACAP_LOCALE` |
@@ -186,7 +193,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 1. **快捷指令**：无报错、无「参数错误」提示
 2. **GitHub Actions**：进入仓库 Actions，应看到 `AuraCap Ingest Dispatch` 有新运行记录
 3. **存储**：该次运行成功后，`storage/timeline.md` 会有新提交和新内容
-4. **Asset 清理**：若 `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`，对应 Release Asset 会被自动删除
+4. **Release 文件清理**：若 `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`，处理完成后会从 Release 上删除对应的截图/录音文件；`false` 时文件会保留并堆积。GitHub 仓库有大小限制（软限制约 1GB），超出后新上传会失败，建议保持 `true`。
 
 ---
 
@@ -197,7 +204,8 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | Inputs 灰色 | 必填字段未填完 | 先填 Owner、Workflow ID、Repository、Branch、Account |
 | 401 / 403 | Token 无效或权限不足 | 检查 Token 是否过期、是否勾选 Contents: Read and write |
 | 404 | owner / repo / release_id 错误 | 核对变量值与仓库、Release 是否一致 |
-| Action 未触发 | 参数缺失或错误 | 检查 Workflow ID 是否为 `ingest_dispatch.yml`，WF_INPUTS 是否包含 `asset_id` |
+| Action 未触发 | 参数缺失或错误 | 检查 Workflow ID 是否为 `ingest_dispatch.yml`，步骤 11 的词典是否包含 `asset_id`（上传后的文件 ID） |
+| 新上传失败 | 仓库大小超限 | GitHub 仓库有软限制约 1GB，Release 文件累积会占用空间；将 `AURACAP_RELEASE_DELETE_AFTER_PROCESS` 设为 `true` 或手动清理 Release 中的旧文件 |
 
 ---
 
@@ -228,6 +236,8 @@ Steps follow actual user flow. **Prerequisite**: iPhone has [GitHub App](https:/
 
 Fork `AuraCap` to your GitHub account. All following operations are on your fork.
 
+**Privacy**: Screenshots/recordings are uploaded to Release and may contain sensitive data. Forks are public by default—set your repo to **Private** in `Settings -> General` or anyone can access your Release assets.
+
 #### Step 2: Configure Variables
 
 Go to `Settings -> Secrets and variables -> Actions`, click `Variables`, add:
@@ -237,10 +247,15 @@ Go to `Settings -> Secrets and variables -> Actions`, click `Variables`, add:
 | `TEXT_PROVIDER` | `mock` | Text analysis (insights, summary, transcript analysis) |
 | `MM_PROVIDER` | `mock` | Multimodal (screenshot, audio when DIRECT_MULTIMODAL) |
 | `ASR_PROVIDER` | `mock` | Speech-to-text (only when TRANSCRIBE_THEN_ANALYZE) |
-| `OUTPUT_LOCALE` | `zh-CN` | Output language |
-| `DEFAULT_TIMEZONE` | `local` | Timestamp timezone |
-| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | Inbox Release tag |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | Delete asset after processing |
+| `OUTPUT_LOCALE` | `zh-CN` | Output language (`zh-CN` or `en-US`) |
+| `DEFAULT_TIMEZONE` | `local` | Timezone for timestamps in timeline and insights/summary |
+| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | Tag name of the Release that holds pending screenshots/recordings |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | After processing, delete uploaded file from Release; `false` keeps files (they accumulate) |
+| `UNIFIED_PROVIDER` (optional) | leave empty | Unified mode: set to `openai`, `google`, etc. to use one provider for TEXT/MM/ASR |
+
+**Storage**: When `AURACAP_RELEASE_DELETE_AFTER_PROCESS=false`, files accumulate in Release. GitHub repos have size limits (~1GB soft); new uploads will fail when exceeded. Keep `true` recommended.
+
+Full variable reference: [USERGUIDE 3.7 Variable Reference](USERGUIDE.md#37-variable-reference-quick-lookup). **Required vs optional**: Mock mode all optional; real models need Secrets + provider variables. See [USERGUIDE 3.7](USERGUIDE.md#37-variable-reference-quick-lookup).
 
 Note: GitHub disallows variable names starting with `GITHUB_`, so we use `AURACAP_` prefix. Mock mode needs no Secrets. For scheduler variables, see [USERGUIDE § 3.5 Scheduler](USERGUIDE.md#35-scheduler).
 
@@ -261,7 +276,7 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 2. Select `AuraCap Setup Release Inbox`
 3. Click `Run workflow` -> `Run workflow`
 4. After run, click the run -> job `setup` -> expand step **`Ensure release inbox exists`**
-5. Copy `release_id` from step log (e.g. `123456789`), save to Notes
+5. In the step output JSON, find `"release_id": 123456789` and copy the number, save to Notes
 
 ---
 
@@ -274,14 +289,14 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 1. **"Text" action**: Search "Text", add, fill value
 2. **"Set Variable" action**: Search "Set Variable", add; previous text auto-wires to "Input"; tap "Variable Name" row, enter name from table
 
-| # | Variable name | Value |
-|---|---------------|-------|
-| 1 | `AURACAP_GH_OWNER` | Your GitHub username (e.g. `massif-01`) |
-| 2 | `AURACAP_GH_REPO` | `AuraCap` |
-| 3 | `AURACAP_GH_TOKEN` | Token from Step 3 |
-| 4 | `AURACAP_INBOX_RELEASE_ID` | `release_id` from Step 4 |
-| 5 | `AURACAP_LOCALE` | `zh-CN` |
-| 6 | `AURACAP_TIMEZONE` | `local` |
+| # | Variable name | Value | Required/Optional |
+|---|---------------|-------|------------------|
+| 1 | `AURACAP_GH_OWNER` | Your GitHub username (e.g. `massif-01`) | Required; wrong → 404 |
+| 2 | `AURACAP_GH_REPO` | `AuraCap` (use new name if you renamed your fork) | Required; wrong → 404 |
+| 3 | `AURACAP_GH_TOKEN` | Token from Step 3 | Required; wrong/expired → 401/403 |
+| 4 | `AURACAP_INBOX_RELEASE_ID` | `release_id` from Step 4 | Required; wrong → 404 |
+| 5 | `AURACAP_LOCALE` | `zh-CN` or `en-US`, align with OUTPUT_LOCALE | Optional; omitted → uses OUTPUT_LOCALE |
+| 6 | `AURACAP_TIMEZONE` | `local` or IANA (e.g. `Asia/Shanghai`), align with DEFAULT_TIMEZONE | Optional; omitted → uses DEFAULT_TIMEZONE |
 
 Tip: Search "Set Variable" or "variable" in Scripts. After adding, tap "Variable Name" to enter. Total 12 actions (6 Text + Set Variable pairs), then screenshot and upload.
 
@@ -337,19 +352,19 @@ Search "Get Contents of URL", add below "Text(URL)". URL auto-wires. Configure:
 | `Accept` | `application/vnd.github+json` |
 | `Content-Type` | `image/png` |
 
-#### Step 10: Add "Get Dictionary Value" — asset_id
+#### Step 10: Add "Get Dictionary Value" — uploaded file ID
 
 Search "Get Dictionary Value", add below previous. Auto-wires to URL response. Set:
 1. **Key** -> enter `id`
 2. **Get** -> keep "Value"
 
-#### Step 11: Add "Dictionary" — WF_INPUTS
+#### Step 11: Add "Dictionary" — Workflow inputs
 
-Search "Dictionary", add. Tap "Add new item" and add 5 entries (select "Text" type each time):
+Search "Dictionary", add. Tap "Add new item" and add 5 entries (select "Text" type each time). These become the Inputs for "Run Workflow":
 
 | Key | Value |
 |-----|-------|
-| `asset_id` | Tap value -> "Select Variable" -> "Get Dictionary Value" output |
+| `asset_id` | Tap value -> "Select Variable" -> "Get Dictionary Value" output (uploaded file ID from Step 10) |
 | `media_type` | `screenshot` |
 | `mime_type` | `image/png` |
 | `locale` | Tap value -> Select Variable -> `AURACAP_LOCALE` |
@@ -391,7 +406,7 @@ Run the shortcut on iPhone. It screenshots, uploads, and triggers the workflow.
 1. **Shortcut**: No error, no "parameter error"
 2. **GitHub Actions**: Enter repo Actions; new run of `AuraCap Ingest Dispatch` should appear
 3. **Storage**: After run succeeds, `storage/timeline.md` gains new commit and content
-4. **Asset cleanup**: If `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`, the Release Asset is auto-deleted
+4. **Release file cleanup**: If `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`, uploaded file is deleted from Release after processing; `false` keeps files (they accumulate). GitHub repos have size limits (~1GB soft); exceeding causes new uploads to fail. Keep `true` recommended.
 
 ---
 
@@ -402,7 +417,8 @@ Run the shortcut on iPhone. It screenshots, uploads, and triggers the workflow.
 | Inputs grey | Required fields empty | Fill Owner, Workflow ID, Repository, Branch, Account first |
 | 401 / 403 | Token invalid or insufficient permissions | Check token expiry, Contents: Read and write |
 | 404 | owner / repo / release_id wrong | Verify variable values match repo and Release |
-| Action not triggered | Missing or wrong parameters | Check Workflow ID = `ingest_dispatch.yml`, WF_INPUTS contains `asset_id` |
+| Action not triggered | Missing or wrong parameters | Check Workflow ID = `ingest_dispatch.yml`, Dictionary from Step 11 contains `asset_id` (uploaded file ID) |
+| New upload fails | Repo size exceeded | GitHub repos have ~1GB soft limit; Release files count. Set `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true` or manually delete old Release assets |
 
 ---
 
