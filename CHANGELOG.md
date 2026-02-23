@@ -9,6 +9,14 @@
 
 ### [Unreleased]
 #### 变更
+- USERGUIDE 文档补全与结构优化：
+  - 2.2 Docker：补充 backend/scheduler 双容器说明及 scheduler 每小时执行
+  - 2.5 新增「捕获 API 的三种方式」（raw/upload/json）及适用场景
+  - 3.2 时间戳与输出：补充 DEFAULT_TIMEZONE 语义、TIMESTAMP_FORMAT、OUTPUT_LOCALE
+  - 3.3 音频模式：详细说明 TRANSCRIBE_THEN_ANALYZE 与 DIRECT_MULTIMODAL 的流程与依赖
+  - 3.4 功能开关：补全 ENABLE_INSIGHTS/ENABLE_SUMMARY 说明；EXTRACT_ONLY 优先级；Custom Operation 完整说明（CUSTOM_OPERATION_MODE、prompt 配置）；手动触发 /v1/tasks/run-scheduled 的用途
+  - 3.1 模型配置：补充 Anthropic、Groq、Mistral 配置指引
+  - 4 存储：各目录用途、STORAGE_ROOT 等路径可配置；4.1 输入限制与媒体类型（MAX_UPLOAD_MB、ALLOWED_*_MIME）；4.2 Sync 简介；4.3 安全（签名校验）
 - Summary 默认频率由每 3 天改为每周（`SUMMARY_CRON` 默认 `0 2 * * 0`，`SUMMARY_WINDOW_DAYS` 默认 `7`）；两者均可通过变量自定义
 - Insights 保持每日一次，可通过 `INSIGHTS_CRON` 自定义
 - 文档重构并双语（中/英）：
@@ -18,6 +26,11 @@
   - 术语统一：路径 A/B → 自部署 / GitHub-only
   - USERGUIDE、GITHUB_RELEASE_INBOX、TESTING_GITHUB_APP 新增完整英文版及语言切换（中文 | English）
 #### 新增
+- 提示词重写：`timeline_prompts.md`、`insights_prompts.md`、`summary_prompts.md` 全部重写，增强中文输出与场景适配
+  - timeline：针对 iOS 截图优化，过滤状态栏等系统噪音，按内容类型自适应提取，输出核心内容/行动项/待确认
+  - insights：跨条目模式分析，今日焦点、隐含意图、未完成信号、值得跟进内容
+  - summary：纵向轨迹分析，持续关注主题、意图与行为对照、进展与停滞、注意力漂移
+- README 新增「提示词说明」小节；补充自部署快速上手（git clone、Docker 选项）、输出目录（含 customized）、模型列表（Anthropic/Groq/Mistral）；USERGUIDE 3.6 补充提示词完整文档（作用、触发变量、自定义路径、截图 vs 录音说明）
 - `ENABLE_SCHEDULER`：scheduler 总开关（默认 `true`）；`false` 时 GitHub Actions job 直接 skip、自部署脚本 early return；不影响 HTTP 手动触发端点
 #### 修复
 - `_matches_cron` weekday 字段现遵循标准 cron 约定（0=周日）；之前 weekday 与 Python datetime.weekday() 约定混用，导致含 weekday 的 cron 表达式执行在错误的星期
@@ -73,6 +86,14 @@
 
 ### [Unreleased]
 #### Changed
+- USERGUIDE documentation completion and restructuring:
+  - 2.2 Docker: added backend/scheduler dual-container description, scheduler hourly tick
+  - 2.5 New "Capture API options" (raw/upload/json) and use cases
+  - 3.2 Timestamp and output: DEFAULT_TIMEZONE semantics, TIMESTAMP_FORMAT, OUTPUT_LOCALE
+  - 3.3 Audio mode: TRANSCRIBE_THEN_ANALYZE vs DIRECT_MULTIMODAL flow and dependencies
+  - 3.4 Feature flags: ENABLE_INSIGHTS/ENABLE_SUMMARY; EXTRACT_ONLY precedence; full Custom Operation (CUSTOM_OPERATION_MODE, prompt config); manual trigger /v1/tasks/run-scheduled
+  - 3.1 Model config: Anthropic, Groq, Mistral setup
+  - 4 Storage: directory purposes, path customization; 4.1 input limits and media types; 4.2 Sync; 4.3 security (signature)
 - Summary default frequency: every 3 days → weekly (`SUMMARY_CRON` default `0 2 * * 0`, `SUMMARY_WINDOW_DAYS` default `7`); both configurable via variables
 - Insights remain daily; configurable via `INSIGHTS_CRON`
 - Documentation restructure and bilingual (zh/en):
@@ -82,6 +103,11 @@
   - Terminology unified: 路径 A/B → 自部署 / GitHub-only
   - Added full English versions to USERGUIDE, GITHUB_RELEASE_INBOX, TESTING_GITHUB_APP with language switcher (中文 | English)
 #### Added
+- Prompt rewrites: `timeline_prompts.md`, `insights_prompts.md`, `summary_prompts.md` rewritten for better Chinese output and scene adaptation
+  - timeline: iOS screenshot optimization, filter status bar etc., content-type adaptive extraction, output 核心内容/行动项/待确认
+  - insights: cross-entry pattern analysis (今日焦点, 隐含意图, 未完成信号, 值得跟进)
+  - summary: longitudinal trajectory (持续关注主题, 意图与行为对照, 进展与停滞, 注意力漂移)
+- README "提示词说明" section; self-host quick start (git clone, Docker option), output dirs (incl. customized), model list (Anthropic/Groq/Mistral); USERGUIDE 3.6 prompt docs (purpose, trigger vars, custom paths, screenshot vs recording)
 - `ENABLE_SCHEDULER`: master switch for scheduler (default `true`); when `false`, GitHub Actions job skips, self-host script exits early; does not affect HTTP manual trigger endpoint
 #### Fixed
 - `_matches_cron` weekday field now follows standard cron convention (0=Sunday); previously mixed with Python datetime.weekday(), causing weekday cron expressions to run on wrong day

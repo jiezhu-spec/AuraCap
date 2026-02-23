@@ -41,7 +41,7 @@ AuraCap 是一条从"即时捕捉"到"结构化沉淀"的通路：通过 **iOS �
 - **入口轻，能力重**：采集通过快捷指令完成，整理由 AI 自动执行
 - **部署路径灵活**：可自部署后端，也可仅依赖 GitHub 工作流；后者无需自建服务器
 - **输出长期可控**：统一写入 Markdown（如 `storage/timeline.md`），便于检索、归档、迁移与备份
-- **模型生态开放**：支持 OpenAI、Gemini、SiliconFlow 等模型及平台
+- **模型生态开放**：支持 OpenAI、Gemini、SiliconFlow、Anthropic、Groq、Mistral 等模型及平台
 
 <a name="unique-innovation-github-release-as-transient-middleware"></a>
 
@@ -86,20 +86,35 @@ AuraCap 最终采取了一种些许"黑客精神"的方案：**利用 GitHub Rel
 **自部署（3 步）**
 
 ```bash
+git clone <your-fork-or-repo-url>
+cd AuraCap
 cp .env.example .env
 pip install -r requirements.txt
 python backend/main.py
 ```
 
-浏览器访问 `http://127.0.0.1:8000/health`，出现响应即表示服务启动成功。随后在 iOS 快捷指令中填入你的 API 地址。
+或使用 Docker：`docker compose up -d --build`。浏览器访问 `http://127.0.0.1:8000/health`，出现响应即表示服务启动成功。随后在 iOS 快捷指令中填入你的 API 地址。
 
 ### 会得到什么输出
 
 - `storage/timeline.md`：按时间顺序记录条目，包含 AI 提取结果
 - `storage/insights/`：每日洞察（默认每天一次，可配置）
 - `storage/summary/`：定期摘要（默认每周一次，可配置）
+- `storage/customized/`：自定义操作输出（需启用 `ENABLE_CUSTOM_OPERATION`）
 
 所有结果均为 Markdown，可同步到 Notion、Obsidian 或任意知识管理系统。你的数据结构不会被平台锁定，也便于长期积累与二次利用。调度频率与 cron 配置见 [用户手册 3.5 自动化调度](docs/USERGUIDE.md#35-自动化调度)。
+
+### 提示词说明
+
+AuraCap 使用三类提示词驱动 AI 分析，均位于 `prompts/` 目录：
+
+| 提示词 | 作用 | 触发时机 |
+|--------|------|----------|
+| `timeline_prompts.md` | 从截图或录音中提取核心信息，写入 timeline | 每次截图/录音时 |
+| `insights_prompts.md` | 通读当日 timeline，发现跨条目的模式与未完成信号 | 每日定时（默认 UTC 01:00） |
+| `summary_prompts.md` | 纵向分析一段时间内的 timeline + insights，归纳轨迹与建议 | 每周定时（默认周日 UTC 02:00） |
+
+默认 timeline 提示词针对 **iOS 截图** 优化（过滤状态栏等系统噪音）。若你主要使用**录音**，可自行修改 `prompts/timeline_prompts.md`，或通过 `TIMELINE_PROMPT_FILE` 指定自己的文件。详见 [用户手册 3.6 提示词](docs/USERGUIDE.md#36-提示词)。
 
 ### 下一步
 
@@ -138,7 +153,7 @@ Choosing Shortcuts is not about being "cooler"—it's about lowering the barrier
 - **Light entry, heavy capability**: Capture via Shortcuts, organization by AI
 - **Flexible deployment**: Self-host a backend or rely solely on GitHub workflows; the latter requires no server
 - **Long-term control over output**: Everything written to Markdown (e.g. `storage/timeline.md`), easy to search, archive, migrate, and back up
-- **Open model ecosystem**: Supports OpenAI, Gemini, SiliconFlow, and other models/platforms
+- **Open model ecosystem**: Supports OpenAI, Gemini, SiliconFlow, Anthropic, Groq, Mistral, and other models/platforms
 
 ### Architecture: Why Use GitHub Release as a "Transient Media Relay"
 
@@ -181,20 +196,35 @@ Start with `mock` mode to complete an end-to-end run, then switch to OpenAI, Gem
 **Self-host (3 steps)**
 
 ```bash
+git clone <your-fork-or-repo-url>
+cd AuraCap
 cp .env.example .env
 pip install -r requirements.txt
 python backend/main.py
 ```
 
-Visit `http://127.0.0.1:8000/health` in your browser; a response means the service is up. Then add your API base URL in the iOS shortcut.
+Or use Docker: `docker compose up -d --build`. Visit `http://127.0.0.1:8000/health` in your browser; a response means the service is up. Then add your API base URL in the iOS shortcut.
 
 ### Output
 
 - `storage/timeline.md`: Time-ordered entries with AI-extracted content
 - `storage/insights/`: Daily insights (default: once per day, configurable)
 - `storage/summary/`: Periodic summaries (default: once per week, configurable)
+- `storage/customized/`: Custom operation output (requires `ENABLE_CUSTOM_OPERATION`)
 
 All output is Markdown and can be synced to Notion, Obsidian, or any knowledge management system. Your data format stays platform-agnostic and supports long-term accumulation and reuse. For schedule frequency and cron configuration, see [User Guide 3.5 Scheduler](docs/USERGUIDE.md#35-scheduler).
+
+### Prompts
+
+AuraCap uses three prompt files under `prompts/` to drive AI analysis:
+
+| Prompt | Purpose | Trigger |
+|--------|---------|---------|
+| `timeline_prompts.md` | Extract key info from screenshots or recordings into timeline | On each capture |
+| `insights_prompts.md` | Analyze the day's timeline for patterns and open threads | Daily (default UTC 01:00) |
+| `summary_prompts.md` | Longitudinal analysis of timeline + insights over a period | Weekly (default Sunday UTC 02:00) |
+
+The default timeline prompt is tuned for **iOS screenshots** (filtering status bar etc.). If you mainly use **voice recordings**, customize `prompts/timeline_prompts.md` or set `TIMELINE_PROMPT_FILE` to your own file. See [User Guide 3.6 Prompts](docs/USERGUIDE.md#36-prompts).
 
 ### Next Steps
 
