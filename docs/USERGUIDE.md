@@ -123,6 +123,8 @@ python scripts/build_shortcuts.py
 
 **自部署**：在仓库根目录 `.env` 中配置。**GitHub-only**：在 `Settings -> Secrets and variables -> Actions` 的 Variables 和 Secrets 中配置。
 
+**配置步骤概览**：① 选定 provider（openai、google、groq 等）；② 配置对应 API Key（Secrets）和模型变量；③ 若用统一模式，设 `UNIFIED_PROVIDER` 可省略 `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER`；④ 第三方 OpenAI 兼容服务需额外设 `OPENAI_BASE_URL`。
+
 **Provider 变量用途**：
 
 | 变量 | 用途 | 典型调用场景 |
@@ -133,7 +135,7 @@ python scripts/build_shortcuts.py
 
 推荐先统一三个 provider 为同一供应商，跑通后再混搭。**Provider 值（openai、google 等）必须小写，否则校验失败**。
 
-**OPENAI 变量说明**：`OPENAI_*` 适用于 OpenAI 官方 API 及所有 **OpenAI API 兼容** 的第三方服务（SiliconFlow、OpenRouter、DeepSeek、通义等）。接入第三方时只需改 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY`，模型名按对应服务商文档。
+**OPENAI 变量说明**：`OPENAI_*` 适用于 OpenAI 官方 API 及所有 **OpenAI API 兼容** 的第三方服务（SiliconFlow、OpenRouter、DeepSeek、通义等）。**重要**：`TEXT_PROVIDER=openai`（或 `UNIFIED_PROVIDER=openai`）必须配置，否则默认 mock，`OPENAI_*` 变量不会生效。接入第三方时改 `OPENAI_BASE_URL`、`OPENAI_API_KEY`，模型名按对应服务商文档。
 
 #### OpenAI（自部署 .env 示例）
 ```env
@@ -164,7 +166,13 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 Variables：`TEXT_PROVIDER=google`、`MM_PROVIDER=google`、`ASR_PROVIDER=google`、`GOOGLE_TEXT_MODEL`、`GOOGLE_MM_MODEL`、`GOOGLE_ASR_MODEL`、`OUTPUT_LOCALE`、`DEFAULT_TIMEZONE`。Secrets：`GOOGLE_API_KEY`。
 
 #### 第三方 OpenAI 兼容服务
-接入 SiliconFlow、OpenRouter、DeepSeek、通义等时，使用 `OPENAI_*` 变量（`OPENAI_BASE_URL`、`OPENAI_API_KEY`、`OPENAI_TEXT_MODEL` 等），见上方说明。以 SiliconFlow 为例：`OPENAI_BASE_URL=https://api.siliconflow.cn/v1`（中国区），模型名在 [SiliconFlow 文档](https://docs.siliconflow.cn/) 中确认。
+接入 SiliconFlow、OpenRouter、DeepSeek、通义等时，使用 `OPENAI_*` 变量。**配置清单**（缺一不可）：
+1. `TEXT_PROVIDER=openai`（或 `UNIFIED_PROVIDER=openai`）——不配置则默认 mock，`OPENAI_*` 不生效
+2. `OPENAI_TEXT_MODEL`、`OPENAI_MM_MODEL` 等——模型值填第三方文档中的 ID（如 `gemini-3-flash-preview-free`）
+3. `OPENAI_BASE_URL`——**仅第三方必填**；OpenAI 官方 API 可不填（有默认值）
+4. Secrets：`OPENAI_API_KEY`
+
+变量名保持 `OPENAI_*`（表示 API 格式兼容）。以 SiliconFlow 为例：`OPENAI_BASE_URL=https://api.siliconflow.cn/v1`，模型名在 [SiliconFlow 文档](https://docs.siliconflow.cn/) 中确认。
 
 #### 统一 Provider 模式
 设 `UNIFIED_PROVIDER=openai`（或 `google`、`groq`、`mistral`）时，所有 text/mm/asr 请求统一到该 provider，只需配置一个 API key。此时 `TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER` 被**完全忽略**，可省略这三者的配置。可将 `OPENAI_TEXT_MODEL`、`OPENAI_MM_MODEL`、`OPENAI_ASR_MODEL` 设为同一模型（如全模态模型）。支持 `openai`、`google`、`groq`、`mistral`、`mock`（不含 anthropic，因其不支持 ASR）。
@@ -495,6 +503,8 @@ Use `/raw` or `/upload` when hitting `PAYLOAD_TOO_LARGE`.
 
 **Self-host**: Configure in root `.env`. **GitHub-only**: Configure in `Settings -> Secrets and variables -> Actions` (Variables and Secrets).
 
+**Config steps overview**: ① Choose provider (openai, google, groq, etc.); ② Set API key (Secrets) and model variables; ③ If using unified mode, set `UNIFIED_PROVIDER` and omit `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER`; ④ Third-party OpenAI-compatible services need `OPENAI_BASE_URL` in addition.
+
 **Provider variable purposes**:
 
 | Variable | Purpose | Typical use |
@@ -505,7 +515,7 @@ Use `/raw` or `/upload` when hitting `PAYLOAD_TOO_LARGE`.
 
 Use the same provider for all three initially; mix after it works. **Provider values (openai, google, etc.) must be lowercase; otherwise validation fails**.
 
-**OPENAI variables**: `OPENAI_*` applies to OpenAI official API and all **OpenAI API compatible** third-party services (SiliconFlow, OpenRouter, DeepSeek, etc.). For third-party: change `OPENAI_BASE_URL` and `OPENAI_API_KEY`; model names per provider docs.
+**OPENAI variables**: `OPENAI_*` applies to OpenAI official API and all **OpenAI API compatible** third-party services (SiliconFlow, OpenRouter, DeepSeek, etc.). **Important**: You must set `TEXT_PROVIDER=openai` (or `UNIFIED_PROVIDER=openai`); otherwise it defaults to mock and `OPENAI_*` variables will not take effect. For third-party: change `OPENAI_BASE_URL`, `OPENAI_API_KEY`; model names per provider docs.
 
 #### OpenAI (Self-host .env example)
 ```env
@@ -536,7 +546,13 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 Variables: `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER`, `GOOGLE_*_MODEL`, `OUTPUT_LOCALE`, `DEFAULT_TIMEZONE`. Secrets: `GOOGLE_API_KEY`.
 
 #### Third-party OpenAI-compatible services
-For SiliconFlow, OpenRouter, DeepSeek, etc., use `OPENAI_*` variables (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL`, etc.), see above. For SiliconFlow: `OPENAI_BASE_URL=https://api.siliconflow.cn/v1` (China). See [SiliconFlow docs](https://docs.siliconflow.cn/) for model names.
+For SiliconFlow, OpenRouter, DeepSeek, etc., use `OPENAI_*` variables. **Checklist** (all required):
+1. `TEXT_PROVIDER=openai` (or `UNIFIED_PROVIDER=openai`)—if unset, defaults to mock; `OPENAI_*` will not take effect
+2. `OPENAI_TEXT_MODEL`, `OPENAI_MM_MODEL`, etc.—model values from third-party docs (e.g. `gemini-3-flash-preview-free`)
+3. `OPENAI_BASE_URL`—**third-party only**; OpenAI official API can leave empty (has default)
+4. Secrets: `OPENAI_API_KEY`
+
+Variable names stay `OPENAI_*` (API format compatible). For SiliconFlow: `OPENAI_BASE_URL=https://api.siliconflow.cn/v1`. See [SiliconFlow docs](https://docs.siliconflow.cn/) for model names.
 
 #### Unified Provider mode
 Set `UNIFIED_PROVIDER=openai` (or `google`, `groq`, `mistral`) to route all text/mm/asr requests to one provider with a single API key. When set, `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER` are **fully ignored** and can be omitted. You can set `OPENAI_TEXT_MODEL`, `OPENAI_MM_MODEL`, `OPENAI_ASR_MODEL` to the same model (e.g. full multimodal). Supports `openai`, `google`, `groq`, `mistral`, `mock` (excludes anthropic, which has no ASR support).

@@ -23,36 +23,55 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 进入 `Settings -> Secrets and variables -> Actions`。
 
-**Variables（变量）**：点 `Variables` 页签，添加：
+**推荐流程**：先用 mock 完成步骤 3–15 验证流程，再按下方「真实模型配置」切换。
 
-| 变量名 | 值 | 用途 |
-|--------|-----|------|
-| `TEXT_PROVIDER` | `mock` | 文本分析（insights、summary、录音转写后分析） |
-| `MM_PROVIDER` | `mock` | 多模态（截图分析、DIRECT_MULTIMODAL 下录音） |
-| `ASR_PROVIDER` | `mock` | 语音转文字（仅 TRANSCRIBE_THEN_ANALYZE 模式） |
-| `OUTPUT_LOCALE` | `zh-CN` | 输出语言（`zh-CN` 或 `en-US`；insights/summary 提示词、timeline 标题） |
-| `DEFAULT_TIMEZONE` | `local` | timeline 条目和 insights/summary 中时间戳的时区 |
-| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | 存放待处理截图/录音的 Release 的 tag 名称（与步骤 4 创建的 Release 对应） |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | 处理完成后是否从 Release 上删除已上传的截图/录音文件；`false` 时文件会保留并堆积。**不配置时默认 `true`，不影响运行** |
-| `UNIFIED_PROVIDER`（可选） | 留空 | 统一模式：设为 `openai`、`google` 等时，TEXT/MM/ASR 均用同一 provider；设后 TEXT_PROVIDER/MM_PROVIDER/ASR_PROVIDER 可省略 |
+---
 
-**存储提醒**：`AURACAP_RELEASE_DELETE_AFTER_PROCESS=false` 时，文件会留在 Release 中累积。GitHub 仓库有大小限制（软限制约 1GB），超出后新上传会失败，建议保持 `true`。
+**一、Variables（变量）**
 
-完整变量说明见 [USERGUIDE 3.7 变量参考速查表](USERGUIDE.md#37-变量参考速查表)。
+点 `Variables` 页签，按用途添加：
 
-**Secrets（密钥）**：使用真实模型时，必须点 `Secrets` 页签添加 API Key。操作：`New repository secret` → 名称填下表对应项 → 值填你的 API Key（粘贴后不可再查看，请妥善保存）。
+| 变量名 | mock 验证时 | 真实模型时 | 用途 |
+|--------|-------------|------------|------|
+| `TEXT_PROVIDER` | `mock` | `openai`、`google` 等（小写） | 文本分析；**不配则默认 mock** |
+| `MM_PROVIDER` | `mock` | 同上 | 多模态（截图、DIRECT_MULTIMODAL 录音） |
+| `ASR_PROVIDER` | `mock` | 同上 | 语音转文字 |
+| `OUTPUT_LOCALE` | `zh-CN` | 同左 | 输出语言 |
+| `DEFAULT_TIMEZONE` | `local` | 同左 | 时间戳时区 |
+| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | 同左 | Release tag（与步骤 4 对应） |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | 同左 | 处理后是否删除 Release 文件；不配默认 `true` |
+| `UNIFIED_PROVIDER`（可选） | 留空 | `openai`、`google` 等 | **与 TEXT_PROVIDER 二选一**；设此项则 TEXT/MM/ASR_PROVIDER 可省略 |
 
-| Provider | Variables 中设置 | Secrets 中必填 |
-|----------|------------------|----------------|
-| OpenAI / SiliconFlow / OpenRouter / DeepSeek 等 | `TEXT_PROVIDER=openai`（或 `UNIFIED_PROVIDER=openai`） | `OPENAI_API_KEY` |
-| Gemini | `TEXT_PROVIDER=google`（或 `UNIFIED_PROVIDER=google`） | `GOOGLE_API_KEY` |
-| Groq | `TEXT_PROVIDER=groq`（或 `UNIFIED_PROVIDER=groq`） | `GROQ_API_KEY` |
-| Mistral | `TEXT_PROVIDER=mistral`（或 `UNIFIED_PROVIDER=mistral`） | `MISTRAL_API_KEY` |
+**存储提醒**：`AURACAP_RELEASE_DELETE_AFTER_PROCESS=false` 时文件会累积；GitHub 约 1GB 软限制，超出后新上传失败。
+
+---
+
+**二、Secrets（密钥）**——仅真实模型需要
+
+点 `Secrets` 页签，`New repository secret` → 名称填下表 → 值填 API Key（粘贴后不可再查看）。
+
+| 选的 Provider | Variables 中必设 | Secrets 中必填 |
+|---------------|------------------|----------------|
+| OpenAI / SiliconFlow / OpenRouter / DeepSeek 等 | `TEXT_PROVIDER=openai` 或 `UNIFIED_PROVIDER=openai` | `OPENAI_API_KEY` |
+| Gemini | `TEXT_PROVIDER=google` 或 `UNIFIED_PROVIDER=google` | `GOOGLE_API_KEY` |
+| Groq | `TEXT_PROVIDER=groq` 或 `UNIFIED_PROVIDER=groq` | `GROQ_API_KEY` |
+| Mistral | `TEXT_PROVIDER=mistral` 或 `UNIFIED_PROVIDER=mistral` | `MISTRAL_API_KEY` |
 | Anthropic | `TEXT_PROVIDER=anthropic` | `ANTHROPIC_API_KEY` |
 
-缺 Secret 会导致 `AUTH_FAILED`，Workflow 运行失败。**Provider 值必须小写**（如 `openai`、`google`），写 `OPENAI` 会校验失败。mock 为测试模式，不调用真实 API，用于端到端验证；mock 模式无需 Secrets。
+**Provider 值必须小写**（`openai` 非 `OPENAI`），否则校验失败。缺 Secret 会导致 `AUTH_FAILED`。
 
-**必配与可选**：mock 模式下上述 Variables 均可不配（全用默认）。使用真实模型时，必须配置对应 provider 的 Secret 以及 `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER`（或 `UNIFIED_PROVIDER`）为非 mock。详见 [USERGUIDE 3.7 变量必配/可选与后果](USERGUIDE.md#37-变量参考速查表)。
+---
+
+**三、真实模型配置清单**（以 OpenAI 兼容为例，含 SiliconFlow、OpenRouter 等第三方）
+
+按顺序完成，缺一不可：
+
+1. **Variables**：`TEXT_PROVIDER=openai` 或 `UNIFIED_PROVIDER=openai` —— 不配则默认 mock，下方变量不生效
+2. **Variables**：`OPENAI_TEXT_MODEL`、`OPENAI_MM_MODEL`、`OPENAI_ASR_MODEL`（模型 ID；第三方时填其文档中的名称，如 `gemini-3-flash-preview-free`）
+3. **Variables**（仅第三方）：`OPENAI_BASE_URL`（第三方 API 地址）；OpenAI 官方可不填
+4. **Secrets**：`OPENAI_API_KEY`
+
+选 Gemini、Groq 等时，用上表对应变量（如 `GOOGLE_API_KEY`、`GOOGLE_TEXT_MODEL`），详见 [USERGUIDE 3.1](USERGUIDE.md#31-模型配置)。
 
 说明：GitHub 禁止变量名以 `GITHUB_` 开头，故 Actions Variables 使用 `AURACAP_` 前缀（如 `AURACAP_RELEASE_INBOX_TAG`）；workflow 内部会映射为 `GITHUB_RELEASE_*` 传给处理脚本。
 
@@ -60,7 +79,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 **可选**：`TIMELINE_LANG_MODE`（默认 `request_locale`）可设为 `content_detect`，让 timeline 自动检测截图/录音内容语言选提示词；截图每次会多一次多模态模型调用。
 
-若使用真实模型（OpenAI、Gemini、SiliconFlow 等），需额外配置 Variables 和 Secrets，详见 [USERGUIDE 配置说明](USERGUIDE.md#3-配置说明两条路径通用)。使用 OpenAI 兼容第三方（SiliconFlow、OpenRouter、DeepSeek 等）时，用 `OPENAI_*` 变量（`OPENAI_BASE_URL`、`OPENAI_API_KEY` 等）；`OPENAI_*` 适用于所有 OpenAI API 兼容服务。
+若使用真实模型（OpenAI、Gemini、SiliconFlow 等），需额外配置 Variables 和 Secrets，详见 [USERGUIDE 配置说明](USERGUIDE.md#3-配置说明两条路径通用)。使用 OpenAI 兼容第三方（SiliconFlow、OpenRouter、DeepSeek 等）时，用 `OPENAI_*` 变量；**变量名保持 `OPENAI_*`**，**模型值填第三方文档中的 ID**（如第三方提供 Gemini 时，`OPENAI_TEXT_MODEL` 填 `gemini-3-flash-preview-free` 等）。
 
 **调度配置（每日洞察 + 定期摘要）**：AuraCap 默认会定时运行 insights（每日）和 summary（每周），将 timeline 提炼为「当日洞察」和「周期摘要」。`ENABLE_SCHEDULER`（默认 `true`）为总开关；设为 `false` 可完全关闭定时任务。`INSIGHTS_CRON`、`SUMMARY_CRON` 等可自定义执行时间；详见 [USERGUIDE 3.5 自动化调度](USERGUIDE.md#35-自动化调度)。
 
@@ -301,36 +320,55 @@ Fork `AuraCap` to your GitHub account. All following steps are on your fork.
 
 Go to `Settings -> Secrets and variables -> Actions`.
 
-**Variables**: Click `Variables`, add:
+**Recommended flow**: Use mock first to complete steps 3–15, then switch to real model per "Real model config" below.
 
-| Variable | Value | Purpose |
-|----------|-------|---------|
-| `TEXT_PROVIDER` | `mock` | Text analysis (insights, summary, transcript analysis) |
-| `MM_PROVIDER` | `mock` | Multimodal (screenshot, audio when DIRECT_MULTIMODAL) |
-| `ASR_PROVIDER` | `mock` | Speech-to-text (only when TRANSCRIBE_THEN_ANALYZE) |
-| `OUTPUT_LOCALE` | `zh-CN` | Output language (`zh-CN` or `en-US`; insights/summary prompts, timeline titles) |
-| `DEFAULT_TIMEZONE` | `local` | Timezone for timestamps in timeline entries and insights/summary |
-| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | Tag name of the Release that holds pending screenshots/recordings (matches the Release created in Step 4) |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | After processing, delete the uploaded screenshot/audio file from the Release; `false` keeps files (they accumulate). **Unset defaults to `true`; no impact on operation** |
-| `UNIFIED_PROVIDER` (optional) | leave empty | Unified mode: set to `openai`, `google`, etc. to use one provider for TEXT/MM/ASR; when set, TEXT_PROVIDER/MM_PROVIDER/ASR_PROVIDER can be omitted |
+---
 
-**Storage**: When `AURACAP_RELEASE_DELETE_AFTER_PROCESS=false`, files accumulate in Release. GitHub repos have size limits (~1GB soft); new uploads will fail when exceeded. Keep `true` recommended.
+**I. Variables**
 
-Full variable reference: [USERGUIDE 3.7 Variable Reference](USERGUIDE.md#37-variable-reference-quick-lookup).
+Click `Variables`, add by purpose:
 
-**Secrets**: For real models, click `Secrets` and add your API key. `New repository secret` → Name = key from table below → Value = your API key (cannot be viewed again after save).
+| Variable | Mock validation | Real model | Purpose |
+|----------|-----------------|------------|---------|
+| `TEXT_PROVIDER` | `mock` | `openai`, `google`, etc. (lowercase) | Text analysis; **unset defaults to mock** |
+| `MM_PROVIDER` | `mock` | same as above | Multimodal (screenshot, DIRECT_MULTIMODAL audio) |
+| `ASR_PROVIDER` | `mock` | same as above | Speech-to-text |
+| `OUTPUT_LOCALE` | `zh-CN` | same | Output language |
+| `DEFAULT_TIMEZONE` | `local` | same | Timestamp timezone |
+| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | same | Release tag (matches Step 4) |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | same | Delete Release files after processing; unset defaults to `true` |
+| `UNIFIED_PROVIDER` (optional) | leave empty | `openai`, `google`, etc. | **Mutually exclusive with TEXT_PROVIDER**; when set, TEXT/MM/ASR_PROVIDER can be omitted |
+
+**Storage**: When `AURACAP_RELEASE_DELETE_AFTER_PROCESS=false`, files accumulate; GitHub ~1GB soft limit; new uploads fail when exceeded.
+
+---
+
+**II. Secrets**—only for real models
+
+Click `Secrets`, `New repository secret` → Name from table → Value = your API key (cannot be viewed again after save).
 
 | Provider | Set in Variables | Required Secret |
 |----------|------------------|-----------------|
-| OpenAI / SiliconFlow / OpenRouter / DeepSeek etc. | `TEXT_PROVIDER=openai` (or `UNIFIED_PROVIDER=openai`) | `OPENAI_API_KEY` |
-| Gemini | `TEXT_PROVIDER=google` (or `UNIFIED_PROVIDER=google`) | `GOOGLE_API_KEY` |
-| Groq | `TEXT_PROVIDER=groq` (or `UNIFIED_PROVIDER=groq`) | `GROQ_API_KEY` |
-| Mistral | `TEXT_PROVIDER=mistral` (or `UNIFIED_PROVIDER=mistral`) | `MISTRAL_API_KEY` |
+| OpenAI / SiliconFlow / OpenRouter / DeepSeek etc. | `TEXT_PROVIDER=openai` or `UNIFIED_PROVIDER=openai` | `OPENAI_API_KEY` |
+| Gemini | `TEXT_PROVIDER=google` or `UNIFIED_PROVIDER=google` | `GOOGLE_API_KEY` |
+| Groq | `TEXT_PROVIDER=groq` or `UNIFIED_PROVIDER=groq` | `GROQ_API_KEY` |
+| Mistral | `TEXT_PROVIDER=mistral` or `UNIFIED_PROVIDER=mistral` | `MISTRAL_API_KEY` |
 | Anthropic | `TEXT_PROVIDER=anthropic` | `ANTHROPIC_API_KEY` |
 
-Missing Secret causes `AUTH_FAILED` and workflow failure. **Provider values must be lowercase** (e.g. `openai`, `google`); `OPENAI` will fail validation. Mock is a test mode that skips real API calls for end-to-end verification; mock mode needs no Secrets.
+**Provider values must be lowercase** (`openai` not `OPENAI`); otherwise validation fails. Missing Secret causes `AUTH_FAILED`.
 
-**Required vs optional**: In mock mode, all Variables can be left unset. For real models, configure the provider Secret and set `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER` (or `UNIFIED_PROVIDER`) to non-mock. See [USERGUIDE 3.7 Required vs Optional](USERGUIDE.md#37-variable-reference-quick-lookup).
+---
+
+**III. Real model config checklist** (OpenAI-compatible example, incl. SiliconFlow, OpenRouter, etc.)
+
+Complete in order; all required:
+
+1. **Variables**: `TEXT_PROVIDER=openai` or `UNIFIED_PROVIDER=openai`—unset defaults to mock; variables below will not take effect
+2. **Variables**: `OPENAI_TEXT_MODEL`, `OPENAI_MM_MODEL`, `OPENAI_ASR_MODEL` (model IDs; for third-party, use their docs, e.g. `gemini-3-flash-preview-free`)
+3. **Variables** (third-party only): `OPENAI_BASE_URL` (third-party API URL); OpenAI official can leave empty
+4. **Secrets**: `OPENAI_API_KEY`
+
+For Gemini, Groq, etc., use the corresponding variables from the table above. See [USERGUIDE 3.1](USERGUIDE.md#31-model-configuration).
 
 Note: GitHub disallows variable names starting with `GITHUB_`, so Actions Variables use `AURACAP_` prefix (e.g. `AURACAP_RELEASE_INBOX_TAG`); the workflow maps these to `GITHUB_RELEASE_*` for the processing script.
 
@@ -338,7 +376,7 @@ Note: GitHub disallows variable names starting with `GITHUB_`, so Actions Variab
 
 **Optional**: `TIMELINE_LANG_MODE` (default `request_locale`) can be set to `content_detect` to auto-detect screenshot/audio content language; screenshots add 1 multimodal model call per capture.
 
-For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. See [USERGUIDE configuration](USERGUIDE.md#3-configuration-both-modes). For OpenAI-compatible third-party (SiliconFlow, OpenRouter, DeepSeek, etc.), use `OPENAI_*` variables (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, etc.); `OPENAI_*` applies to all OpenAI API compatible services.
+For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. See [USERGUIDE configuration](USERGUIDE.md#3-configuration-both-modes). For OpenAI-compatible third-party (SiliconFlow, OpenRouter, DeepSeek, etc.), use `OPENAI_*` variables; **variable names stay `OPENAI_*`**; **model values use the third-party's model ID from their docs** (e.g. when the provider offers Gemini, set `OPENAI_TEXT_MODEL=gemini-3-flash-preview-free` etc.).
 
 **Scheduler (daily insights + periodic summary)**: AuraCap runs insights (daily) and summary (weekly) by default, turning timeline into "当日洞察" and "周期摘要". `ENABLE_SCHEDULER` (default `true`) is the master switch; set to `false` to fully disable. `INSIGHTS_CRON`, `SUMMARY_CRON`, etc. control execution time; see [USERGUIDE 3.5 Scheduler](USERGUIDE.md#35-scheduler).
 
