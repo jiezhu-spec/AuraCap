@@ -16,9 +16,21 @@
 
 两种方式都可独立使用：前者强调低维护成本与开箱即用，后者强调实时性与控制力。
 
-### 1. 自部署
+### 1. GitHub-only
 
-### 1.1 本地部署
+GitHub-only 模式下，你不需要常驻后端。iOS 将截图/录音上传到 GitHub Release Asset，再触发 Workflow；GitHub Actions 自动处理并写回 `storage/`。
+
+**四步快速开始**：
+1. Fork 本仓库
+2. 在 `Settings -> Secrets and variables -> Actions` 中配置必要变量（可先用 `mock` 跑通）
+3. 运行一次 `AuraCap Setup Release Inbox` 工作流
+4. 按详细指南在 iPhone 上搭好快捷指令
+
+建议首次用 `mock` 模式完成端到端验证，再切换真实模型。**完整步骤与步骤截图见 [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md)。**
+
+### 2. 自部署
+
+### 2.1 本地部署
 ```bash
 git clone <your-fork-or-repo-url>
 cd AuraCap
@@ -34,7 +46,7 @@ python backend/main.py
 curl http://127.0.0.1:8000/health
 ```
 
-### 1.2 云服务器部署（Docker）
+### 2.2 云服务器部署（Docker）
 ```bash
 git clone <your-fork-or-repo-url>
 cd AuraCap
@@ -48,7 +60,7 @@ docker compose ps
 - 开 HTTPS
 - 只开放 80/443
 
-### 1.3 自部署的 iOS 快捷指令
+### 2.3 自部署的 iOS 快捷指令
 
 #### 方案 1：导入模板（推荐）
 1. 在仓库执行：
@@ -63,6 +75,8 @@ python scripts/build_shortcuts.py
 - 云端示例：`https://cap.yourdomain.com`
 
 #### 方案 2：手动搭建（不用模板）
+将下面 URL 中的 `cap.yourdomain.com` 替换为你的实际后端地址（本地示例 `192.168.1.23:8000`，需加 `http://` 前缀）。
+
 截图：
 1. 新建快捷指令
 2. 动作 `文本`：
@@ -84,21 +98,9 @@ python scripts/build_shortcuts.py
 5. 动作 `获取 URL 内容`（POST + 文件）
 6. 动作 `显示结果`
 
-### 1.4 自部署成功判定
+### 2.4 自部署成功判定
 1. 快捷指令返回 JSON，含 `status: success`
 2. 本地或服务器的 `storage/timeline.md` 增加新记录
-
-### 2. GitHub-only
-
-GitHub-only 模式下，你不需要常驻后端。iOS 将截图/录音上传到 GitHub Release Asset，再触发 Workflow；GitHub Actions 自动处理并写回 `storage/`。
-
-**四步快速开始**：
-1. Fork 本仓库
-2. 在 `Settings -> Secrets and variables -> Actions` 中配置必要变量（可先用 `mock` 跑通）
-3. 运行一次 `AuraCap Setup Release Inbox` 工作流
-4. 按详细指南在 iPhone 上搭好快捷指令
-
-建议首次用 `mock` 模式完成端到端验证，再切换真实模型。**完整步骤与截图占位见 [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md)。**
 
 ### 3. 配置说明（两条路径通用）
 
@@ -142,9 +144,8 @@ Variables：`TEXT_PROVIDER=google`、`MM_PROVIDER=google`、`ASR_PROVIDER=google
 改完后：自部署重启 `python backend/main.py` 或 `docker compose up -d --build`；GitHub-only 无需重启。
 
 #### 如何判断模型配置成功
-1. 跑一次快捷指令或手动触发 `AuraCap Ingest Dispatch`
-2. Actions 日志中不再出现 `AUTH_FAILED`
-3. `storage/timeline.md` 出现非空提取内容
+- **自部署**：跑一次快捷指令；检查后端日志无 `AUTH_FAILED`；`storage/timeline.md` 出现非空提取内容
+- **GitHub-only**：跑一次快捷指令或手动触发 `AuraCap Ingest Dispatch`；Actions 日志中不再出现 `AUTH_FAILED`；`storage/timeline.md` 出现非空提取内容
 
 ### 3.2 时间戳
 - 默认时区：`DEFAULT_TIMEZONE=local`
@@ -189,7 +190,7 @@ Variables：`TEXT_PROVIDER=google`、`MM_PROVIDER=google`、`ASR_PROVIDER=google
 4. GitHub-only 没写入：检查 Actions 权限、dispatch 是否 `204`、`asset_id` 是否正确
 
 ### 6. 相关文档
-- [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md)：GitHub-only 完整指南（含截图占位）
+- [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md)：GitHub-only 完整指南（含步骤截图）
 - [TESTING_GITHUB_APP.md](TESTING_GITHUB_APP.md)：GitHub App 版测试清单
 - [shortcuts/README.md](../shortcuts/README.md)：模板快捷指令说明
 
@@ -207,9 +208,21 @@ Variables：`TEXT_PROVIDER=google`、`MM_PROVIDER=google`、`ASR_PROVIDER=google
 
 Both can be used independently: the former emphasizes low maintenance and out-of-the-box use, the latter emphasizes real-time control.
 
-### 1. Self-host
+### 1. GitHub-only
 
-#### 1.1 Local Deployment
+No persistent backend. iOS uploads screenshots/recordings to GitHub Release Asset, triggers Workflow; GitHub Actions processes and writes to `storage/`.
+
+**Four-step quick start**:
+1. Fork this repository
+2. Configure variables under `Settings -> Secrets and variables -> Actions` (use `mock` first to verify)
+3. Run `AuraCap Setup Release Inbox` workflow once
+4. Follow the detailed guide to set up shortcuts on iPhone
+
+Start with `mock` mode for end-to-end verification, then switch to real models. **Full steps and screenshot placeholders: [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md).**
+
+### 2. Self-host
+
+#### 2.1 Local Deployment
 ```bash
 git clone <your-fork-or-repo-url>
 cd AuraCap
@@ -225,7 +238,7 @@ Verify:
 curl http://127.0.0.1:8000/health
 ```
 
-#### 1.2 Cloud / Docker Deployment
+#### 2.2 Cloud / Docker Deployment
 ```bash
 git clone <your-fork-or-repo-url>
 cd AuraCap
@@ -239,7 +252,7 @@ Recommendations:
 - Enable HTTPS
 - Expose only ports 80/443
 
-#### 1.3 iOS Shortcuts for Self-host
+#### 2.3 iOS Shortcuts for Self-host
 
 **Option 1: Import templates (recommended)**
 1. In the repo, run:
@@ -250,24 +263,13 @@ python scripts/build_shortcuts.py
 3. On first run, enter `AuraCap Backend Base URL` (e.g. `http://192.168.1.23:8000` for LAN, `https://cap.yourdomain.com` for cloud)
 
 **Option 2: Manual setup**
+Replace `cap.yourdomain.com` in the URL with your actual backend (e.g. `192.168.1.23:8000` with `http://` prefix for LAN).
 Screenshot: Create shortcut with `Text` (URL), `URL`, `Take Screenshot`, `Get Contents of URL` (POST, body: File, file: screenshot output), `Show Result`.
 Audio: Same flow with `Record Audio`, `audio/m4a` in URL params.
 
-#### 1.4 Success Criteria
+#### 2.4 Success Criteria
 1. Shortcut returns JSON with `status: success`
 2. `storage/timeline.md` on server gains new entries
-
-### 2. GitHub-only
-
-No persistent backend. iOS uploads screenshots/recordings to GitHub Release Asset, triggers Workflow; GitHub Actions processes and writes to `storage/`.
-
-**Four-step quick start**:
-1. Fork this repository
-2. Configure variables under `Settings -> Secrets and variables -> Actions` (use `mock` first to verify)
-3. Run `AuraCap Setup Release Inbox` workflow once
-4. Follow the detailed guide to set up shortcuts on iPhone
-
-Start with `mock` mode for end-to-end verification, then switch to real models. **Full steps and screenshot placeholders: [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md).**
 
 ### 3. Configuration (Both Modes)
 
@@ -311,9 +313,8 @@ Change `OPENAI_BASE_URL` and `OPENAI_API_KEY`. For SiliconFlow: `OPENAI_BASE_URL
 After changes: Self-host restart `python backend/main.py` or `docker compose up -d --build`; GitHub-only needs no restart.
 
 #### Verifying model config
-1. Run shortcut or manually trigger `AuraCap Ingest Dispatch`
-2. No `AUTH_FAILED` in Actions logs
-3. Non-empty content in `storage/timeline.md`
+- **Self-host**: Run shortcut; check backend logs for no `AUTH_FAILED`; non-empty content in `storage/timeline.md`
+- **GitHub-only**: Run shortcut or manually trigger `AuraCap Ingest Dispatch`; no `AUTH_FAILED` in Actions logs; non-empty content in `storage/timeline.md`
 
 ### 3.2 Timestamp
 - Default timezone: `DEFAULT_TIMEZONE=local`
@@ -358,6 +359,6 @@ After changes: Self-host restart `python backend/main.py` or `docker compose up 
 4. GitHub-only no write: check Actions permissions, dispatch returns 204, `asset_id` correct
 
 ### 6. Related Docs
-- [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md): GitHub-only full guide (with screenshot placeholders)
+- [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md): GitHub-only full guide (with step screenshots)
 - [TESTING_GITHUB_APP.md](TESTING_GITHUB_APP.md): GitHub App test checklist
 - [shortcuts/README.md](../shortcuts/README.md): Shortcut templates

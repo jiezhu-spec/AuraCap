@@ -218,40 +218,180 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 This flow is consolidated into [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md) as the primary guide. This doc remains as a test checklist and quick reference.
 
-Steps follow actual user flow. **Prerequisite**: iPhone has [GitHub App](https://apps.apple.com/app/github/id1477376905) and GitHub account logged in.
+Steps follow actual user flow. **Prerequisite**: iPhone has [GitHub App](https://apps.apple.com/app/github/id1477376905) installed with your GitHub account logged in.
 
 ---
 
 ### Part I: GitHub Preparation
 
 #### Step 1: Fork Repository
-Fork `AuraCap` to your GitHub account.
+
+Fork `AuraCap` to your GitHub account. All following operations are on your fork.
 
 #### Step 2: Configure Variables
-`Settings -> Secrets and variables -> Actions` -> Variables. Add: `TEXT_PROVIDER=mock`, `MM_PROVIDER=mock`, `ASR_PROVIDER=mock`, `OUTPUT_LOCALE=zh-CN`, `DEFAULT_TIMEZONE=local`, `AURACAP_RELEASE_INBOX_TAG=auracap-inbox`, `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`. Mock needs no Secrets. For scheduler variables, see [USERGUIDE § 3.5 Scheduler](USERGUIDE.md#35-scheduler). For real models, see [USERGUIDE config](USERGUIDE.md#3-configuration-both-modes).
+
+Go to `Settings -> Secrets and variables -> Actions`, click `Variables`, add:
+
+| Variable | Value |
+|----------|-------|
+| `TEXT_PROVIDER` | `mock` |
+| `MM_PROVIDER` | `mock` |
+| `ASR_PROVIDER` | `mock` |
+| `OUTPUT_LOCALE` | `zh-CN` |
+| `DEFAULT_TIMEZONE` | `local` |
+| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` |
+
+Note: GitHub disallows variable names starting with `GITHUB_`, so we use `AURACAP_` prefix. Mock mode needs no Secrets. For scheduler variables, see [USERGUIDE § 3.5 Scheduler](USERGUIDE.md#35-scheduler).
+
+For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. See [USERGUIDE configuration](USERGUIDE.md#3-configuration-both-modes).
 
 #### Step 3: Create Fine-grained Token
-Profile -> Settings -> Developer settings -> Personal access tokens -> Fine-grained -> Generate. `Contents` = Read and write. Copy token (shown once).
+
+1. GitHub profile -> `Settings`
+2. Bottom left -> `Developer settings`
+3. `Personal access tokens` -> `Fine-grained tokens` -> `Generate new token`
+4. Fill: `Token name` (e.g. `auracap-ios`), `Expiration` (e.g. 90 days), `Repository access` = `Only select repositories`, select your AuraCap fork
+5. `Repository permissions` -> `Contents` = `Read and write`
+6. **Copy token immediately** (shown once). Save in Notes, then paste into shortcut variables
 
 #### Step 4: Initialize Release Inbox
-Actions -> `AuraCap Setup Release Inbox` -> Run workflow. Copy `release_id` from step `Ensure release inbox exists` log.
+
+1. Go to repo `Actions`
+2. Select `AuraCap Setup Release Inbox`
+3. Click `Run workflow` -> `Run workflow`
+4. After run, click the run -> job `setup` -> expand step **`Ensure release inbox exists`**
+5. Copy `release_id` from step log (e.g. `123456789`), save to Notes
 
 ---
 
 ### Part II: Build Shortcut on iPhone
 
-#### Steps 5–13
-One shortcut. 6 variable pairs (Text + Set Variable): `AURACAP_GH_OWNER`, `AURACAP_GH_REPO`, `AURACAP_GH_TOKEN`, `AURACAP_INBOX_RELEASE_ID`, `AURACAP_LOCALE`, `AURACAP_TIMEZONE`. Then: Text(Bearer) -> Screenshot -> Text(URL) -> Get Contents of URL (upload) -> Get Dictionary Value (key `id`) -> Dictionary (WF_INPUTS) -> Run Workflow -> Show Notification (optional). Full details in [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md).
+#### Step 5: New Shortcut and Variables
+
+**Create one shortcut** (e.g. "AuraCap Screenshot"). **Repeat 6 times**:
+
+1. **"Text" action**: Search "Text", add, fill value
+2. **"Set Variable" action**: Search "Set Variable", add; previous text auto-wires to "Input"; tap "Variable Name" row, enter name from table
+
+| # | Variable name | Value |
+|---|---------------|-------|
+| 1 | `AURACAP_GH_OWNER` | Your GitHub username (e.g. `massif-01`) |
+| 2 | `AURACAP_GH_REPO` | `AuraCap` |
+| 3 | `AURACAP_GH_TOKEN` | Token from Step 3 |
+| 4 | `AURACAP_INBOX_RELEASE_ID` | `release_id` from Step 4 |
+| 5 | `AURACAP_LOCALE` | `zh-CN` |
+| 6 | `AURACAP_TIMEZONE` | `local` |
+
+Tip: Search "Set Variable" or "variable" in Scripts. After adding, tap "Variable Name" to enter. Total 12 actions (6 Text + Set Variable pairs), then screenshot and upload.
+
+**From here, all actions go in the same shortcut, below the 12 variable actions, in order.**
+
+Action sequence (order matters):
+```
+[12 variables]
+→ Text(Bearer)
+→ Take Screenshot
+→ Text(URL)
+→ Get Contents of URL
+→ Get Dictionary Value
+→ Dictionary
+→ Run Workflow
+→ Show Notification (optional)
+```
+
+#### Step 6: Add "Text" — Bearer token
+
+Search "Text", add below the 12 variable actions. In text box enter `Bearer ` (one space after), then tap input -> "Select Variable" -> `AURACAP_GH_TOKEN`.
+
+Must be before screenshot/upload so "Get Contents of URL" headers can reference it.
+
+#### Step 7: Add "Take Screenshot"
+
+Search "Take Screenshot" or "Screenshot", add below "Text(Bearer)".
+
+#### Step 8: Add "Text" — Upload URL
+
+Search "Text", add below Screenshot. Build URL:
+1. Enter `https://uploads.github.com/repos/`
+2. Tap input -> Select Variable -> `AURACAP_GH_OWNER`
+3. Enter `/`
+4. Select Variable -> `AURACAP_GH_REPO`
+5. Enter `/releases/`
+6. Select Variable -> `AURACAP_INBOX_RELEASE_ID`
+7. Enter `/assets?name=shot.png`
+
+Result: `https://uploads.github.com/repos/massif-01/AuraCap/releases/123456789/assets?name=shot.png`
+
+#### Step 9: Add "Get Contents of URL" — Upload
+
+Search "Get Contents of URL", add below "Text(URL)". URL auto-wires. Configure:
+1. **Method**: Change GET to **POST**; "Request Body" row appears
+2. **Request Body**: Change JSON to **File**; "File" row appears
+3. **File**: Tap "File" -> "Select Variable" -> choose **Screenshot** output
+4. **Headers**: Expand "Headers" -> "Add new header" (+) -> add:
+
+| Key | Value |
+|-----|-------|
+| `Authorization` | Tap value -> "Select Variable" -> "Text(Bearer)" (Step 6 output) |
+| `Accept` | `application/vnd.github+json` |
+| `Content-Type` | `image/png` |
+
+#### Step 10: Add "Get Dictionary Value" — asset_id
+
+Search "Get Dictionary Value", add below previous. Auto-wires to URL response. Set:
+1. **Key** -> enter `id`
+2. **Get** -> keep "Value"
+
+#### Step 11: Add "Dictionary" — WF_INPUTS
+
+Search "Dictionary", add. Tap "Add new item" and add 5 entries (select "Text" type each time):
+
+| Key | Value |
+|-----|-------|
+| `asset_id` | Tap value -> "Select Variable" -> "Get Dictionary Value" output |
+| `media_type` | `screenshot` |
+| `mime_type` | `image/png` |
+| `locale` | Tap value -> Select Variable -> `AURACAP_LOCALE` |
+| `timezone` | Tap value -> Select Variable -> `AURACAP_TIMEZONE` |
+
+#### Step 12: Add "Run Workflow"
+
+Search "Run Workflow", add. Each field has a text input; fill:
+
+| Field | Value |
+|-------|-------|
+| Owner | Tap value -> Select Variable -> `AURACAP_GH_OWNER` |
+| Workflow ID | `ingest_dispatch.yml` |
+| Repository | Tap value -> Select Variable -> `AURACAP_GH_REPO` |
+| Branch / ref | `main` |
+| Inputs | Tap value -> Select Variable -> previous "Dictionary" output |
+| Account | Auto-filled, no change needed |
+
+Note: **If Inputs is grey**, fill Owner, Workflow ID, Repository, Branch, Account first; Inputs becomes clickable.
+
+#### Step 13: Add "Show Notification" (optional)
+
+Search "Show Notification", add. Two input fields:
+- **"Hello, World!"** (body): Enter any text, e.g. `AuraCap screenshot uploaded`, or leave default
+- **">" next to "Notification"**: Tap for title etc.; optional
+
+Purely for confirming shortcut completion; no functional impact. Can be omitted.
 
 ---
 
 ### Part III: Test and Verify
 
 #### Step 14: Run Shortcut
-Run on iPhone. Screenshot, upload, trigger workflow.
 
-#### Step 15: Verify
-No shortcut error. Actions has new `AuraCap Ingest Dispatch` run. `storage/timeline.md` updated. Asset deleted if `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`.
+Run the shortcut on iPhone. It screenshots, uploads, and triggers the workflow.
+
+#### Step 15: Verify Success
+
+1. **Shortcut**: No error, no "parameter error"
+2. **GitHub Actions**: Enter repo Actions; new run of `AuraCap Ingest Dispatch` should appear
+3. **Storage**: After run succeeds, `storage/timeline.md` gains new commit and content
+4. **Asset cleanup**: If `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`, the Release Asset is auto-deleted
 
 ---
 
@@ -259,13 +399,18 @@ No shortcut error. Actions has new `AuraCap Ingest Dispatch` run. `storage/timel
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| Inputs grey | Required fields empty | Fill Owner, Workflow ID, Repository, Branch, Account |
-| 401/403 | Token invalid | Check expiry, Contents: Read and write |
-| 404 | Wrong owner/repo/release_id | Verify variables |
-| Not triggered | Parameter error | Workflow ID = `ingest_dispatch.yml`, WF_INPUTS has `asset_id` |
+| Inputs grey | Required fields empty | Fill Owner, Workflow ID, Repository, Branch, Account first |
+| 401 / 403 | Token invalid or insufficient permissions | Check token expiry, Contents: Read and write |
+| 404 | owner / repo / release_id wrong | Verify variable values match repo and Release |
+| Action not triggered | Missing or wrong parameters | Check Workflow ID = `ingest_dispatch.yml`, WF_INPUTS contains `asset_id` |
 
 ---
 
 ### Part V: Voice Recording Shortcut
 
-Same as screenshot. Change: Step 7 Screenshot -> Record Audio; Step 9 `Content-Type` -> `audio/m4a`; Step 11 `media_type` = `audio`, `mime_type` = `audio/m4a`.
+Same as screenshot. Change these three:
+1. Step 7: "Take Screenshot" -> "Record Audio"
+2. Step 9 (upload) Header: `Content-Type` -> `audio/m4a`
+3. Step 11 (Dictionary): `media_type` -> `audio`, `mime_type` -> `audio/m4a`
+
+All other steps unchanged.

@@ -76,8 +76,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 提示：底部搜索框输入「设定变量」或「变量」，在「脚本」分类里找；添加后该动作会显示「输入」「变量名称」两行，点「变量名称」即可输入名字。完成后共 12 个动作（6 组「文本」+「设定变量」），后面再接截屏、上传等。
 
-> **截图占位**：此处可插入「步骤 5」变量设定界面的截图，供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-5 -->
+![步骤 5](step_screenshots/step-5.png)
 
 **从这里开始，所有动作都在同一个快捷指令里，紧接在 12 个变量动作的下方按顺序添加。**
 
@@ -96,19 +95,17 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ### 步骤 6：添加「文本」——Bearer token
 
-搜索「文本」，添加在 12 个变量动作的最下方。在文本框输入 `Bearer `（注意后面有**一个空格**），再点输入框 →「选择变量」→ 选 `AURACAP_GH_TOKEN`。
+搜索「文本」，添加在 12 个变量动作的最下方。在文本框输入 `Bearer `（注意Bearer后面有**一个空格**），再点输入框 →「选择变量」→ 选 `AURACAP_GH_TOKEN`。
 
 这一步必须放在截屏和上传之前，方便后面「获取 URL 内容」的头部直接引用。
 
-> **截图占位**：此处可插入「步骤 6」Bearer token 文本动作的截图，供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-6 -->
+![步骤 6](step_screenshots/step-6.png)
 
 ### 步骤 7：添加「截屏」
 
 搜索「截取屏幕」或「截屏」，添加在「文本(Bearer)」下方。
 
-> **截图占位**：此处可插入「步骤 7」截屏动作的截图，供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-7 -->
+![步骤 7](step_screenshots/step-7.png)
 
 ### 步骤 8：添加「文本」——拼接上传 URL
 
@@ -124,8 +121,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 拼完后类似：`https://uploads.github.com/repos/massif-01/AuraCap/releases/123456789/assets?name=shot.png`
 
-> **截图占位**：此处可插入「步骤 8」URL 拼接完成后的截图，供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-8 -->
+![步骤 8](step_screenshots/step-8.png)
 
 ### 步骤 9：添加「获取 URL 内容」——上传截图
 
@@ -142,8 +138,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `Accept` | 直接输入 `application/vnd.github+json` |
 | `Content-Type` | 直接输入 `image/png` |
 
-> **截图占位**：此处可插入「步骤 9」获取 URL 内容配置完成后的截图（含方法、请求体、头部），供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-9 -->
+![步骤 9](step_screenshots/step-9.png)
 
 ### 步骤 10：添加「获取词典值」——取 asset_id
 
@@ -152,8 +147,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 1. 点「**键**」→ 输入 `id`
 2. 「获取」保持「值」不变
 
-> **截图占位**：此处可插入「步骤 10」获取词典值配置的截图，供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-10 -->
+![步骤 10](step_screenshots/step-10.png)
 
 ### 步骤 11：添加「词典」——构造 WF_INPUTS
 
@@ -167,8 +161,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `locale` | 点右边值栏 →「选择变量」→ 选 `AURACAP_LOCALE` |
 | `timezone` | 点右边值栏 →「选择变量」→ 选 `AURACAP_TIMEZONE` |
 
-> **截图占位**：此处可插入「步骤 11」词典五个条目配置完成后的截图，供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-11 -->
+![步骤 11](step_screenshots/step-11.png)
 
 ### 步骤 12：添加「调度工作流程」
 
@@ -185,8 +178,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 注意：**Inputs 灰色无法点击时**，先把 Owner、Workflow ID、Repository、Branch、Account 都填好，Inputs 才会变成可点击状态。
 
-> **截图占位**：此处可插入「步骤 12」调度工作流程各字段填完后的截图，供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-12 -->
+![步骤 12](step_screenshots/step-12.png)
 
 ### 步骤 13：添加「显示通知」（可选）
 
@@ -197,8 +189,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 这一步纯粹用于确认快捷指令执行结束，不影响功能，也可以不加。
 
-> **截图占位**：此处可插入「步骤 13」显示通知的截图（可选），供用户对照操作。
-<!-- SCREENSHOT_PLACEHOLDER: step-13 -->
+![步骤 13](step_screenshots/step-13.png)
 
 ---
 
@@ -330,8 +321,7 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 
 Tip: Search "Set Variable" or "variable" in Scripts. After adding, tap "Variable Name" to enter. Total 12 actions (6 Text + Set Variable pairs), then screenshot/upload.
 
-> **Screenshot placeholder**: Insert Step 5 variable setup screenshot here.
-<!-- SCREENSHOT_PLACEHOLDER: step-5 -->
+![Step 5](step_screenshots/step-5.png)
 
 **From here, all actions go in the same shortcut, below the 12 variable actions, in order.**
 
@@ -354,15 +344,13 @@ Search "Text", add below the 12 variable actions. In text box enter `Bearer ` (o
 
 Must be before screenshot/upload so "Get Contents of URL" headers can reference it.
 
-> **Screenshot placeholder**: Insert Step 6 Bearer token text action screenshot here.
-<!-- SCREENSHOT_PLACEHOLDER: step-6 -->
+![Step 6](step_screenshots/step-6.png)
 
 #### Step 7: Add "Take Screenshot"
 
 Search "Take Screenshot" or "Screenshot", add below "Text(Bearer)".
 
-> **Screenshot placeholder**: Insert Step 7 screenshot action here.
-<!-- SCREENSHOT_PLACEHOLDER: step-7 -->
+![Step 7](step_screenshots/step-7.png)
 
 #### Step 8: Add "Text" — Upload URL
 
@@ -377,8 +365,7 @@ Search "Text", add below Screenshot. Build URL:
 
 Result: `https://uploads.github.com/repos/massif-01/AuraCap/releases/123456789/assets?name=shot.png`
 
-> **Screenshot placeholder**: Insert Step 8 URL screenshot here.
-<!-- SCREENSHOT_PLACEHOLDER: step-8 -->
+![Step 8](step_screenshots/step-8.png)
 
 #### Step 9: Add "Get Contents of URL" — Upload
 
@@ -387,22 +374,19 @@ Search "Get Contents of URL", add below "Text(URL)". URL auto-wired. Configure:
 2. **Request Body**: Change JSON to **File**; select "Screenshot" as file
 3. **Headers**: Add `Authorization` (Text(Bearer) output), `Accept` = `application/vnd.github+json`, `Content-Type` = `image/png`
 
-> **Screenshot placeholder**: Insert Step 9 configured request screenshot here.
-<!-- SCREENSHOT_PLACEHOLDER: step-9 -->
+![Step 9](step_screenshots/step-9.png)
 
 #### Step 10: Add "Get Dictionary Value" — asset_id
 
 Search "Get Dictionary Value", add below previous. Key = `id`, Get = "Value".
 
-> **Screenshot placeholder**: Insert Step 10 screenshot here.
-<!-- SCREENSHOT_PLACEHOLDER: step-10 -->
+![Step 10](step_screenshots/step-10.png)
 
 #### Step 11: Add "Dictionary" — WF_INPUTS
 
 Search "Dictionary", add. Add 5 items: `asset_id` (Get Dictionary Value output), `media_type` = `screenshot`, `mime_type` = `image/png`, `locale` (variable), `timezone` (variable).
 
-> **Screenshot placeholder**: Insert Step 11 dictionary screenshot here.
-<!-- SCREENSHOT_PLACEHOLDER: step-11 -->
+![Step 11](step_screenshots/step-11.png)
 
 #### Step 12: Add "Run Workflow"
 
@@ -410,15 +394,13 @@ Search "Run Workflow" (GitHub action). Fill: Owner, Workflow ID = `ingest_dispat
 
 Note: If Inputs is grey, fill Owner, Workflow ID, Repository, Branch, Account first.
 
-> **Screenshot placeholder**: Insert Step 12 Run Workflow screenshot here.
-<!-- SCREENSHOT_PLACEHOLDER: step-12 -->
+![Step 12](step_screenshots/step-12.png)
 
 #### Step 13: Add "Show Notification" (optional)
 
 Search "Show Notification", add. Optional, for confirmation.
 
-> **Screenshot placeholder**: Insert Step 13 screenshot here.
-<!-- SCREENSHOT_PLACEHOLDER: step-13 -->
+![Step 13](step_screenshots/step-13.png)
 
 ---
 

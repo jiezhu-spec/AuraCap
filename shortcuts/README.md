@@ -44,5 +44,5 @@ python scripts/build_shortcuts.py
 2. 后端 `storage/timeline.md` 出现新记录。
 
 GitHub-only 用户请改看：
-- `../docs/USERGUIDE.md` 第 2 章
+- `../docs/USERGUIDE.md` 第 1 章
 - `../docs/GITHUB_RELEASE_INBOX.md`
