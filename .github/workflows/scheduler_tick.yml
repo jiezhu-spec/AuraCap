@@ -103,7 +103,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run scheduler tick
-        run: python scripts/run_scheduler_tick.py
+        run: PYTHONPATH=. python scripts/run_scheduler_tick.py
       - name: Persist storage artifacts
         if: ${{ success() }}
         run: |

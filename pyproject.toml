@@ -24,6 +24,9 @@ dev = [
 pythonpath = ["."]
 testpaths = ["tests"]
 
+[tool.setuptools.packages.find]
+include = ["backend*"]
+
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
