@@ -42,16 +42,9 @@ def append_timeline(
         trace=trace,
     )
     block = {
-        "id": entry.id,
         "timestamp": entry.timestamp.isoformat(),
         "timestamp_display": entry.timestamp_display,
-        "locale": entry.locale,
-        "timezone": entry.timezone,
-        "input_type": entry.input_type,
-        "source": entry.source,
         "extracted_content": entry.extracted_content,
-        "metadata": entry.metadata,
-        "trace": entry.trace,
     }
 
     with settings.timeline_file.open("a", encoding="utf-8") as f:

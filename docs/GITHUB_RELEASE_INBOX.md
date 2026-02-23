@@ -39,10 +39,9 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `OUTPUT_LOCALE` | `zh-CN` | 同左 | 输出语言 |
 | `DEFAULT_TIMEZONE` | `local` | 同左 | 时间戳时区 |
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | 同左 | Release tag（与步骤 4 对应） |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | 同左 | 处理后是否删除 Release 文件；不配默认 `true` |
 | `UNIFIED_PROVIDER`（可选） | 留空 | `openai`、`google` 等 | **与 TEXT_PROVIDER 二选一**；设此项则 TEXT/MM/ASR_PROVIDER 可省略 |
 
-**存储提醒**：`AURACAP_RELEASE_DELETE_AFTER_PROCESS=false` 时文件会累积；GitHub 约 1GB 软限制，超出后新上传失败。
+处理完成后会自动从 Release 删除已上传文件，保持收件箱清爽，避免重复上传 `shot.png` 时出现 `already_exists` 错误。
 
 ---
 
@@ -89,7 +88,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 2. 左侧底部 -> `Developer settings`
 3. `Personal access tokens` -> `Fine-grained tokens` -> `Generate new token`
 4. 填写：`Token name`（如 `auracap-ios`），`Expiration`（如 90 天），`Repository access` 选 `Only select repositories` 并勾选你的 AuraCap fork
-5. `Repository permissions` -> `Contents` 设为 `Read and write`
+5. `Repository permissions` -> `Contents` 设为 `Read and write`；若使用「调度工作流程」触发 workflow，还需 `Actions` 设为 `Read and write`
 6. 生成后**立即复制 token**（只显示一次），建议先保存在备忘录，后面填到快捷指令里
 
 ### 步骤 4：初始化 Release Inbox
@@ -97,14 +96,13 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 1. 进入仓库 `Actions` 页面
 2. 左侧选择 `AuraCap Setup Release Inbox`
 3. 点击 `Run workflow` -> `Run workflow`
-4. 运行完成后，点击该次运行 -> 点击 job `setup` -> 展开步骤 **`Ensure release inbox exists`**
-5. 在步骤输出的 JSON 中找到 `"release_id": 123456789` 格式，复制其中的数字，保存到备忘录
+4. 运行完成后，点击该次运行，在 **setup summary** 中即可看到 `release_id`、`tag` 等信息；复制 `release_id` 的数字，保存到备忘录
 
 ---
 
 ### 二、在 iPhone 上搭快捷指令
 
-> **快捷方式：若不想从头手动配置，可 [下载已脱敏的快捷指令模板（截图）](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/19b273bd82af4458aee7623f79dd7f11)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。**
+> **快捷方式：若不想从头手动配置，可 [下载已脱敏的快捷指令模板（截图）](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。**
 
 ### 步骤 5：新建快捷指令并添加变量
 
@@ -253,8 +251,8 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 1. **快捷指令**：无报错、无「参数错误」提示
 2. **GitHub Actions**：进入仓库 Actions，应看到 `AuraCap Ingest Dispatch` 有新运行记录
-3. **存储**：该次运行成功后，`storage/timeline.md` 会有新提交和新内容
-4. **Release 文件清理**：若 `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`，处理完成后会从 Release 上删除对应的截图/录音文件，保持 Release 清爽；`false` 时文件会保留并堆积。GitHub 仓库有大小限制（软限制约 1GB），超出后新上传会失败，建议保持 `true`。
+3. **存储**：该次运行成功后，`storage/timeline.md` 会有新提交；每条记录含时间戳与提取内容
+4. **Release 文件清理**：处理完成后会自动从 Release 删除对应的截图/录音文件，保持收件箱清爽。
 
 ---
 
@@ -266,7 +264,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | 401 / 403 | Token 无效或权限不足 | 检查 Token 是否过期、是否勾选 Contents: Read and write |
 | 404 | owner / repo / release_id 错误 | 核对变量值与仓库、Release 是否一致 |
 | Action 未触发 | 参数缺失或错误 | 检查 Workflow ID 是否为 `ingest_dispatch.yml`，步骤 11 的词典是否包含 `asset_id`（上传后的文件 ID） |
-| 新上传失败 | 仓库大小超限 | GitHub 仓库有软限制约 1GB，Release 文件累积会占用空间；将 `AURACAP_RELEASE_DELETE_AFTER_PROCESS` 设为 `true` 或手动清理 Release 中的旧文件 |
+| 新上传失败 | 仓库大小超限或 `already_exists` | GitHub 仓库有软限制约 1GB；若 Release 中有未清理的旧文件，可手动删除后重试；或改用动态文件名（如 `shot_` + 当前日期 + `.png`） |
 | `AUTH_FAILED` | 未配置 Secret 或 provider 值错误（如大小写） | 检查 Secrets 页签是否添加对应 API Key；`TEXT_PROVIDER`、`UNIFIED_PROVIDER` 等值必须小写（如 `openai`） |
 
 ---
@@ -336,10 +334,9 @@ Click `Variables`, add by purpose:
 | `OUTPUT_LOCALE` | `zh-CN` | same | Output language |
 | `DEFAULT_TIMEZONE` | `local` | same | Timestamp timezone |
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | same | Release tag (matches Step 4) |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | same | Delete Release files after processing; unset defaults to `true` |
 | `UNIFIED_PROVIDER` (optional) | leave empty | `openai`, `google`, etc. | **Mutually exclusive with TEXT_PROVIDER**; when set, TEXT/MM/ASR_PROVIDER can be omitted |
 
-**Storage**: When `AURACAP_RELEASE_DELETE_AFTER_PROCESS=false`, files accumulate; GitHub ~1GB soft limit; new uploads fail when exceeded.
+Uploaded files are automatically deleted from Release after processing to keep the inbox clean and avoid `already_exists` when re-uploading `shot.png`.
 
 ---
 
@@ -386,7 +383,7 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 2. Bottom left -> `Developer settings`
 3. `Personal access tokens` -> `Fine-grained tokens` -> `Generate new token`
 4. Fill: `Token name` (e.g. `auracap-ios`), `Expiration` (e.g. 90 days), `Repository access` = `Only select repositories`, select your AuraCap fork
-5. `Repository permissions` -> `Contents` = `Read and write`
+5. `Repository permissions` -> `Contents` = `Read and write`; if using "Run workflow" to trigger, also set `Actions` = `Read and write`
 6. **Copy token immediately** (shown once). Save in Notes, then paste into shortcut variables
 
 #### Step 4: Initialize Release Inbox
@@ -394,14 +391,13 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 1. Go to repo `Actions`
 2. Select `AuraCap Setup Release Inbox`
 3. Click `Run workflow` -> `Run workflow`
-4. After run, click the run -> job `setup` -> expand step **`Ensure release inbox exists`**
-5. In the step output JSON, find `"release_id": 123456789` and copy the number, save to Notes
+4. After run, click the run; the **setup summary** shows `release_id`, `tag`, etc.; copy the `release_id` number and save to Notes
 
 ---
 
 ### Part II: Build Shortcut on iPhone
 
-> **Shortcut: Prefer not to configure from scratch? [Screenshot template](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985), [Voice template](https://www.icloud.com/shortcuts/19b273bd82af4458aee7623f79dd7f11) (personal info already masked). Import one, then fill in your GitHub username, token, `release_id`, etc.**
+> **Shortcut: Prefer not to configure from scratch? [Screenshot template](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8), [Voice template](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226) (personal info already masked). Import one, then fill in your GitHub username, token, `release_id`, etc.**
 
 #### Step 5: New Shortcut and Variables
 
@@ -516,8 +512,8 @@ Run the shortcut on iPhone. It screenshots, uploads, and triggers the workflow.
 
 1. **Shortcut**: No error, no "parameter error"
 2. **GitHub Actions**: New run of `AuraCap Ingest Dispatch`
-3. **Storage**: New commit and content in `storage/timeline.md`
-4. **Release file cleanup**: If `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true`, the uploaded screenshot/audio file is deleted from the Release after processing; `false` keeps files (they accumulate). GitHub repos have size limits (~1GB soft); exceeding causes new uploads to fail. Keep `true` recommended.
+3. **Storage**: New commit in `storage/timeline.md`; each entry has timestamp and extracted content
+4. **Release file cleanup**: Uploaded files are automatically deleted from Release after processing to keep the inbox clean.
 
 ---
 
@@ -529,7 +525,7 @@ Run the shortcut on iPhone. It screenshots, uploads, and triggers the workflow.
 | 401 / 403 | Token invalid or lacking permissions | Check expiry, Contents: Read and write |
 | 404 | owner / repo / release_id wrong | Verify variable values |
 | Action not triggered | Parameter error | Check Workflow ID = `ingest_dispatch.yml`, Dictionary from Step 11 has `asset_id` (uploaded file ID) |
-| New upload fails | Repo size exceeded | GitHub repos have ~1GB soft limit; Release files count. Set `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true` or manually delete old Release assets |
+| New upload fails | Repo size exceeded or `already_exists` | GitHub repos have ~1GB soft limit; delete old Release assets manually and retry, or use dynamic filename (e.g. `shot_` + current date + `.png`) |
 | `AUTH_FAILED` | Secret not configured or provider value wrong (e.g. case) | Add API key in Secrets; use lowercase for provider values (e.g. `openai`) |
 
 ---

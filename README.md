@@ -79,7 +79,7 @@ AuraCap 最终采取了一种些许"黑客精神"的方案：**利用 GitHub Rel
 1. Fork 本仓库（**隐私提醒**：Fork 后请将仓库设为 Private，否则截图/录音会对外可见）
 2. 在仓库 `Settings -> Secrets and variables -> Actions` 中配置必要变量（如 TEXT_PROVIDER、MM_PROVIDER、OUTPUT_LOCALE 等，可先使用 `mock` 跑通流程；mock 模式无需 Secrets；使用真实模型时需在 Secrets 页签添加 API Key（如 OPENAI_API_KEY）；详见 [GITHUB_RELEASE_INBOX 步骤 2](docs/GITHUB_RELEASE_INBOX.md#步骤-2配置-variables-与-secrets)）
 3. 运行一次 `AuraCap Setup Release Inbox` 工作流
-4. 按用户手册在 iPhone 上搭好快捷指令（或 [下载已脱敏模板（截图）](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/19b273bd82af4458aee7623f79dd7f11)，导入后仅填写个人信息即可）
+4. 按用户手册在 iPhone 上搭好快捷指令（或 [下载已脱敏模板（截图）](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226)，导入后仅填写个人信息即可）
 
 建议首次先使用 `mock` 模式完成端到端验证，再切换为 OpenAI、Gemini 等真实模型。详细步骤见 [用户手册](docs/USERGUIDE.md)。
 
@@ -192,7 +192,7 @@ Both can be used independently: the former emphasizes low maintenance and out-of
 1. Fork this repository (**Privacy**: Set your fork to Private, or screenshots/recordings will be publicly visible.)
 2. Configure required variables under `Settings -> Secrets and variables -> Actions` (e.g. TEXT_PROVIDER, MM_PROVIDER, OUTPUT_LOCALE; use `mock` first to verify; mock mode needs no Secrets; for real models add API key in Secrets (e.g. OPENAI_API_KEY); see [GITHUB_RELEASE_INBOX Step 2](docs/GITHUB_RELEASE_INBOX.md#step-2-configure-variables-and-secrets))
 3. Run the `AuraCap Setup Release Inbox` workflow once
-4. Set up the shortcut on your iPhone following the [user guide](docs/USERGUIDE.md) (or [Screenshot template](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985), [Voice template](https://www.icloud.com/shortcuts/19b273bd82af4458aee7623f79dd7f11)—fill in your personal info only)
+4. Set up the shortcut on your iPhone following the [user guide](docs/USERGUIDE.md) (or [Screenshot template](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8), [Voice template](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226)—fill in your personal info only)
 
 Start with `mock` mode to complete an end-to-end run, then switch to OpenAI, Gemini, or other real models. See [docs/USERGUIDE.md](docs/USERGUIDE.md) for details.
 

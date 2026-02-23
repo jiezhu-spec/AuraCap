@@ -27,7 +27,7 @@ async def run_periodic_summary(settings: Settings, provider: BaseProvider, now_d
         return None
 
     timeline_text = "\n".join(
-        f"- {item['timestamp_display']} | {item['input_type']} | {item['extracted_content'][:300]}" for item in timeline_items
+        f"- {item['timestamp_display']} | {item.get('input_type', 'screenshot')} | {item['extracted_content'][:300]}" for item in timeline_items
     )
     insights_text = _collect_insight_text(settings, start_day, now_day)
 

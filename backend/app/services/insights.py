@@ -12,7 +12,7 @@ from backend.app.services.timeline import entries_by_day
 def _build_day_payload(entries: list[dict]) -> str:
     lines = []
     for item in entries:
-        lines.append(f"- {item['timestamp_display']} | {item['input_type']} | {item['extracted_content'][:300]}")
+        lines.append(f"- {item['timestamp_display']} | {item.get('input_type', 'screenshot')} | {item['extracted_content'][:300]}")
     return "\n".join(lines)
 
 

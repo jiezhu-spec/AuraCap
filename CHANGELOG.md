@@ -9,6 +9,12 @@
 
 ### [Unreleased]
 #### 变更
+- CI 与 workflow 修复：
+  - `pyproject.toml`：新增 `[tool.setuptools.packages.find] include = ["backend*"]`，修复 `pip install .[dev]` 时「Multiple top-level packages」错误
+  - `scheduler_tick.yml`：运行脚本时添加 `PYTHONPATH=.`，修复 `ModuleNotFoundError: No module named 'backend'`
+- Release 处理：`GITHUB_RELEASE_DELETE_AFTER_PROCESS` 固定为 `true`，处理完成后自动删除 Release 文件，避免 `shot.png` 重复上传时 `already_exists`；移除该变量配置项
+- Timeline 存储格式精简：`storage/timeline.md` 每条仅保留 `timestamp`、`timestamp_display`、`extracted_content` 三字段，移除 id、locale、timezone、input_type、source、metadata、trace
+- 文档：Fine-grained Token 补充 `Actions: Read and write`（使用「调度工作流程」时）；常见问题补充 `already_exists` 与动态文件名说明
 - USERGUIDE 文档补全与结构优化：
   - 2.2 Docker：补充 backend/scheduler 双容器说明及 scheduler 每小时执行
   - 2.5 新增「捕获 API 的三种方式」（raw/upload/json）及适用场景
@@ -96,6 +102,12 @@
 
 ### [Unreleased]
 #### Changed
+- CI and workflow fixes:
+  - `pyproject.toml`: added `[tool.setuptools.packages.find] include = ["backend*"]` to fix "Multiple top-level packages" error on `pip install .[dev]`
+  - `scheduler_tick.yml`: added `PYTHONPATH=.` when running script to fix `ModuleNotFoundError: No module named 'backend'`
+- Release handling: `GITHUB_RELEASE_DELETE_AFTER_PROCESS` hardcoded to `true`; uploaded files auto-deleted after processing to avoid `already_exists` when re-uploading `shot.png`; removed variable from config
+- Timeline storage format simplified: each entry in `storage/timeline.md` now has only `timestamp`, `timestamp_display`, `extracted_content`; removed id, locale, timezone, input_type, source, metadata, trace
+- Docs: Fine-grained Token now documents `Actions: Read and write` when using "Run workflow"; troubleshooting updated for `already_exists` and dynamic filename
 - USERGUIDE documentation completion and restructuring:
   - 2.2 Docker: added backend/scheduler dual-container description, scheduler hourly tick
   - 2.5 New "Capture API options" (raw/upload/json) and use cases

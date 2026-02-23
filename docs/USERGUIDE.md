@@ -371,10 +371,9 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 | `SKIP_SIGNATURE_VERIFICATION` | 是否跳过签名校验 | `true`、`false` | `true` |
 | **GitHub-only** | | | |
 | `AURACAP_RELEASE_INBOX_TAG` | 存放待处理截图/录音的 Release 的 tag 名称 | 任意字符串 | `auracap-inbox` |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | 处理完成后是否从 Release 上删除已上传的截图/录音文件；`false` 时文件会保留并堆积。GitHub 仓库有大小限制（软限制约 1GB），超出后新上传会失败，建议保持 `true`。不配置时默认 `true`，不影响运行 | `true`、`false` | `true` |
 
 ### 4. 存储输出
-- `storage/timeline.md`：按时间顺序的原始记录
+- `storage/timeline.md`：按时间顺序的原始记录；每条仅含 `timestamp`、`timestamp_display`、`extracted_content` 三字段
 - `storage/insights/`：每日洞察；文件命名 `YYYY-MM-DD.md`（分析目标日期）
 - `storage/summary/`：定期摘要；文件命名 `{start_day}_{end_day}.md`（如 `2025-02-18_2025-02-24.md`），覆盖天数由 `SUMMARY_WINDOW_DAYS` 决定
 - `storage/customized/`：自定义操作（Custom Operation）的输出
@@ -398,7 +397,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 2. `AUTH_FAILED`：检查 provider 与对应 key；**Provider 值必须小写**；**GitHub-only 需在 Secrets 页签添加 API Key**
 3. 自部署没写入：检查后端进程和 `storage/` 权限
 4. GitHub-only 没写入：检查 Actions 权限、快捷指令触发的 Workflow 是否成功启动、步骤 11 传入的 `asset_id`（上传后的文件 ID）是否正确
-5. GitHub-only 新上传失败：可能是仓库大小超限（GitHub 软限制约 1GB）；将 `AURACAP_RELEASE_DELETE_AFTER_PROCESS` 设为 `true` 或手动清理 Release 中的旧文件
+5. GitHub-only 新上传失败：可能是仓库大小超限或 `already_exists`；手动清理 Release 中的旧文件后重试
 
 ### 6. 相关文档
 - [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md)：GitHub-only 完整指南（含步骤截图）
@@ -751,10 +750,9 @@ Common variables and their purposes. Full list in `.env.example`.
 | `SKIP_SIGNATURE_VERIFICATION` | Skip signature verification | `true`, `false` | `true` |
 | **GitHub-only** | | | |
 | `AURACAP_RELEASE_INBOX_TAG` | Tag name of the Release that holds pending screenshots/recordings | any string | `auracap-inbox` |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | After processing, delete uploaded screenshot/audio from Release; `false` keeps files (they accumulate). GitHub repos have ~1GB soft limit; exceeding causes new uploads to fail. Keep `true` recommended. Unset defaults to `true`; no impact on operation | `true`, `false` | `true` |
 
 ### 4. Storage Output
-- `storage/timeline.md`: raw time-ordered entries
+- `storage/timeline.md`: raw time-ordered entries; each entry has only `timestamp`, `timestamp_display`, `extracted_content`
 - `storage/insights/`: daily insights; file naming `YYYY-MM-DD.md` (target day analyzed)
 - `storage/summary/`: periodic summaries; file naming `{start_day}_{end_day}.md` (e.g. `2025-02-18_2025-02-24.md`), window set by `SUMMARY_WINDOW_DAYS`
 - `storage/customized/`: custom operation output
@@ -778,7 +776,7 @@ Default `SKIP_SIGNATURE_VERIFICATION=true`, no request signature check. To enabl
 2. `AUTH_FAILED`: check provider and API key; **provider values must be lowercase**; **GitHub-only: add API key in Secrets**
 3. Self-host no write: check backend process and `storage/` permissions
 4. GitHub-only no write: check Actions permissions, shortcut-triggered Workflow starts successfully, `asset_id` (uploaded file ID) passed in Step 11 is correct
-5. GitHub-only new upload fails: repo size may be exceeded (GitHub ~1GB soft limit); set `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true` or manually delete old Release assets
+5. GitHub-only new upload fails: repo size exceeded or `already_exists`; manually delete old Release assets and retry
 
 ### 6. Related Docs
 - [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md): GitHub-only full guide (with step screenshots)
