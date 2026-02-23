@@ -26,6 +26,14 @@
   - 术语统一：路径 A/B → 自部署 / GitHub-only
   - USERGUIDE、GITHUB_RELEASE_INBOX、TESTING_GITHUB_APP 新增完整英文版及语言切换（中文 | English）
 #### 新增
+- 多提示词路由系统（Prompt Router）：
+  - 新增 `backend/app/services/prompt_router.py` 模块，集中封装语言检测与提示词路由逻辑
+  - Timeline 新增 4 套场景化提示词：`timeline_screenshot_zh.md`、`timeline_screenshot_en.md`、`timeline_audio_zh.md`、`timeline_audio_en.md`
+  - Insights 新增双语提示词：`insights_zh.md`、`insights_en.md`
+  - Summary 新增双语提示词：`summary_zh.md`、`summary_en.md`
+  - 新增 `TIMELINE_LANG_MODE` 配置（默认 `request_locale`）：`request_locale` 按 `AURACAP_LOCALE`/`OUTPUT_LOCALE` 选提示词；`content_detect` 自动检测截图/录音内容语言（截图需额外 VL 调用，录音用 CJK 字符比例启发式检测）
+  - Insights/Summary 始终通过 `OUTPUT_LOCALE` 路由至对应语言提示词
+  - 所有语言专属提示词文件均缺失时自动回退到原有通用提示词文件，零迁移成本
 - 提示词重写：`timeline_prompts.md`、`insights_prompts.md`、`summary_prompts.md` 全部重写，增强中文输出与场景适配
   - timeline：针对 iOS 截图优化，过滤状态栏等系统噪音，按内容类型自适应提取，输出核心内容/行动项/待确认
   - insights：跨条目模式分析，今日焦点、隐含意图、未完成信号、值得跟进内容
@@ -103,6 +111,14 @@
   - Terminology unified: 路径 A/B → 自部署 / GitHub-only
   - Added full English versions to USERGUIDE, GITHUB_RELEASE_INBOX, TESTING_GITHUB_APP with language switcher (中文 | English)
 #### Added
+- Multi-prompt routing system (Prompt Router):
+  - Added `backend/app/services/prompt_router.py` module encapsulating language detection and prompt routing logic
+  - Timeline: 4 scenario-specific prompts: `timeline_screenshot_zh.md`, `timeline_screenshot_en.md`, `timeline_audio_zh.md`, `timeline_audio_en.md`
+  - Insights: bilingual prompts: `insights_zh.md`, `insights_en.md`
+  - Summary: bilingual prompts: `summary_zh.md`, `summary_en.md`
+  - New `TIMELINE_LANG_MODE` setting (default `request_locale`): `request_locale` uses `AURACAP_LOCALE`/`OUTPUT_LOCALE` for prompt selection; `content_detect` auto-detects content language (screenshots incur 1 extra VL call; audio uses CJK character ratio heuristic)
+  - Insights/Summary always route to the language-specific prompt via `OUTPUT_LOCALE`
+  - Graceful fallback to existing generic prompt files when language-specific variants are absent — zero migration cost
 - Prompt rewrites: `timeline_prompts.md`, `insights_prompts.md`, `summary_prompts.md` rewritten for better Chinese output and scene adaptation
   - timeline: iOS screenshot optimization, filter status bar etc., content-type adaptive extraction, output 核心内容/行动项/待确认
   - insights: cross-entry pattern analysis (今日焦点, 隐含意图, 未完成信号, 值得跟进)

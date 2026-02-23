@@ -188,9 +188,7 @@ config 支持 Anthropic、Groq、Mistral，变量命名见 `.env.example`（如 
 - **ENABLE_SUMMARY**：是否启用定期摘要（默认 `true`）
 - **ENABLE_CUSTOM_OPERATION**：是否启用自定义操作（默认 `false`），见下方
 
-**自定义操作**：对 timeline 提取结果做额外 AI 处理，输出到 `storage/customized/`。需配置 `prompts/customized_prompts.md`（或 `CUSTOMIZED_PROMPT_FILE`）。`CUSTOM_OPERATION_MODE`：
-- `ON_EACH_TRIGGER`：每次捕捉后立即执行
-- `CRON`：按 `CUSTOM_OPERATION_CRON` 定时执行（默认每 6 小时）
+**自定义操作**：对 timeline 提取结果做额外 AI 处理，输出到 `storage/customized/`。需配置 `prompts/customized_prompts.md`（或 `CUSTOMIZED_PROMPT_FILE`）。`CUSTOM_OPERATION_MODE`：`ON_EACH_TRIGGER`=每次捕捉后立即执行；`CRON`=按 `CUSTOM_OPERATION_CRON` 定时执行（默认每 6 小时）。使用步骤见 [3.6 提示词](#36-提示词)。
 
 **手动触发 Scheduler**：`POST /v1/tasks/run-scheduled` 可手动执行一次 insights/summary 等定时逻辑；不受 `ENABLE_SCHEDULER=false` 影响。自部署用户可用 cron 定期调用该端点替代内置 scheduler 容器。
 
@@ -210,34 +208,51 @@ config 支持 Anthropic、Groq、Mistral，变量命名见 `.env.example`（如 
 
 ### 3.6 提示词
 
-AuraCap 的三类提示词位于 `prompts/` 目录，分别驱动 timeline 提取、每日洞察和定期摘要。你可以直接编辑这些文件，或通过环境变量指定自己的路径。
+AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提取、每日洞察、定期摘要与自定义操作。你可以直接编辑这些文件，或通过环境变量指定自己的路径。
 
 | 文件 | 作用 | 触发时机 | 模型 |
 |------|------|----------|------|
 | `timeline_prompts.md` | 从截图或录音中提取用户想记录的核心信息，写入 `storage/timeline.md` | 每次快捷指令完成截图/录音并上传时 | VL（截图）/ 文本或 VL（录音） |
 | `insights_prompts.md` | 通读当日所有 timeline 条目，发现跨条目的模式、隐含意图、未完成信号 | 每日定时（见下方变量） | 文本 |
 | `summary_prompts.md` | 纵向分析一段时间内的 timeline + insights，归纳持续关注的主题、进展与停滞、建议方向 | 每周定时（见下方变量） | 文本 |
+| `customized_prompts.md` | 对 timeline 提取结果做额外 AI 处理，输出到 `storage/customized/` | 由 `CUSTOM_OPERATION_MODE` 决定：每次捕捉后或按 cron 定时 | 文本 |
 
 **触发变量**（自部署写在 `.env`，GitHub-only 写在 `Settings -> Secrets and variables -> Actions` 的 Variables 中）：
 
 | 提示词 | 变量 | 含义 | 默认值 |
 |--------|------|------|--------|
-| timeline | 无 | 事件驱动，每次捕捉即触发，无定时变量 | — |
+| timeline | `TIMELINE_LANG_MODE` | 语言路由：`request_locale`=按 locale 选提示词；`content_detect`=自动检测内容语言 | `request_locale` |
+| timeline | — | 事件驱动，每次捕捉即触发，无定时变量 | — |
 | insights | `ENABLE_INSIGHTS` | 是否启用每日洞察 | `true` |
 | | `INSIGHTS_CRON` | cron 表达式，定义执行时间（分 时 日 月 周） | `0 1 * * *`（每日 UTC 01:00） |
 | | `INSIGHTS_TARGET_DAY_OFFSET` | 分析哪一天：`0`=当天，`1`=前一天 | `1` |
 | summary | `ENABLE_SUMMARY` | 是否启用定期摘要 | `true` |
 | | `SUMMARY_CRON` | cron 表达式，定义执行时间 | `0 2 * * 0`（每周日 UTC 02:00） |
 | | `SUMMARY_WINDOW_DAYS` | 摘要覆盖的天数 | `7` |
+| customized | `ENABLE_CUSTOM_OPERATION` | 是否启用自定义操作 | `false` |
+| | `CUSTOM_OPERATION_MODE` | 执行模式：`ON_EACH_TRIGGER`=每次捕捉后；`CRON`=定时 | `ON_EACH_TRIGGER` |
+| | `CUSTOM_OPERATION_CRON` | cron 表达式（仅 `CRON` 模式生效；该模式下需 `ENABLE_SCHEDULER=true`） | `0 */6 * * *`（每 6 小时） |
 
-上述变量需在 `ENABLE_SCHEDULER=true` 且对应 `ENABLE_*` 为 `true` 时生效。cron 格式与更多示例见 [3.5 自动化调度](#35-自动化调度)。
+上述变量中，insights/summary 需在 `ENABLE_SCHEDULER=true` 且对应 `ENABLE_*` 为 `true` 时生效；customized 的 `ON_EACH_TRIGGER` 模式不依赖 scheduler，`CRON` 模式则需 scheduler 运行。cron 格式与更多示例见 [3.5 自动化调度](#35-自动化调度)。
 
-**自定义路径**：在 `.env` 或 GitHub Actions Variables 中设置 `TIMELINE_PROMPT_FILE`、`INSIGHTS_PROMPT_FILE`、`SUMMARY_PROMPT_FILE`，指向你自己的 Markdown 文件。
+**自定义路径**：在 `.env` 或 GitHub Actions Variables 中设置 `TIMELINE_PROMPT_FILE`、`INSIGHTS_PROMPT_FILE`、`SUMMARY_PROMPT_FILE`、`CUSTOMIZED_PROMPT_FILE`，指向你自己的 Markdown 文件。
+
+**提示词语言路由**：AuraCap 支持按语言选择提示词，实现中英文输出。
+
+- **Timeline**：支持 4 套提示词（`timeline_screenshot_zh.md`、`timeline_screenshot_en.md`、`timeline_audio_zh.md`、`timeline_audio_en.md`）。通过 `TIMELINE_LANG_MODE` 控制：
+  - `request_locale`（默认）：按 `locale` 选提示词——快捷指令中为 `AURACAP_LOCALE`，GitHub dispatch 中为 `OUTPUT_LOCALE`；想切换输出语言只需修改该变量，零额外 API 调用
+  - `content_detect`：自动检测内容语言（截图每次多一次 VL 调用；录音对 transcript 做启发式检测，无额外调用）；检测失败时自动回退到 `request_locale`
+- **Insights / Summary**：支持 2 套提示词（`insights_zh.md`、`insights_en.md`、`summary_zh.md`、`summary_en.md`），始终跟随 `OUTPUT_LOCALE`，无需额外变量
+- 非 zh/en 语言兜底为 `en`；新文件不存在时自动回退到原有单文件（如 `timeline_prompts.md`），零迁移成本
+
+**使用自定义提示词**：1. 编辑 `prompts/customized_prompts.md`（或通过 `CUSTOMIZED_PROMPT_FILE` 指定其他路径）；2. 在 `.env` 中设置 `ENABLE_CUSTOM_OPERATION=true`；3. 可选：设置 `CUSTOM_OPERATION_MODE`（`ON_EACH_TRIGGER` 或 `CRON`）及 `CUSTOM_OPERATION_CRON`。输出至 `storage/customized/`。
 
 **截图 vs 录音**：默认的 timeline 提示词针对 **iOS 截图** 优化，包含过滤状态栏、导航栏等系统噪音的指引。若你主要使用**录音**：
 
 - `TRANSCRIBE_THEN_ANALYZE` 模式下，模型收到的是 ASR 转写后的文本，没有图像；"忽略 iOS 噪音" 等描述不会造成问题，提取逻辑仍适用。
 - 若希望提示词更贴合语音场景，可自行修改：移除或弱化截图相关的噪音描述，增加对会议纪要、想法、待办、口述备忘等内容的提取指引。
+
+**按侧重调整提示词**：若你的记录以工作、生活或学习某一类为主，可主动编辑提示词以强调对应侧重。例如：以**工作**为主时，侧重会议、deadline、决策、行动项；以**学习**为主时，侧重概念、记忆点、待复习；以**生活**为主时，侧重体验、偏好、待办。直接编辑 `prompts/` 下的对应文件，或通过 `TIMELINE_PROMPT_FILE`、`INSIGHTS_PROMPT_FILE`、`SUMMARY_PROMPT_FILE` 指定自己的路径；无需额外配置，按需逐步微调即可。
 
 ### 4. 存储输出
 - `storage/timeline.md`：按时间顺序的原始记录
@@ -433,9 +448,7 @@ Default `TRANSCRIBE_THEN_ANALYZE` recommended; `DIRECT_MULTIMODAL` requires audi
 - **ENABLE_SUMMARY**: enable periodic summary (default `true`)
 - **ENABLE_CUSTOM_OPERATION**: enable custom operation (default `false`), see below
 
-**Custom operation**: Extra AI processing on timeline extract results, output to `storage/customized/`. Requires `prompts/customized_prompts.md` (or `CUSTOMIZED_PROMPT_FILE`). `CUSTOM_OPERATION_MODE`:
-- `ON_EACH_TRIGGER`: run immediately after each capture
-- `CRON`: run on `CUSTOM_OPERATION_CRON` (default every 6 hours)
+**Custom operation**: Extra AI processing on timeline extract results, output to `storage/customized/`. Requires `prompts/customized_prompts.md` (or `CUSTOMIZED_PROMPT_FILE`). `CUSTOM_OPERATION_MODE`: `ON_EACH_TRIGGER`=run immediately after each capture; `CRON`=run on `CUSTOM_OPERATION_CRON` (default every 6 hours). Usage steps: [3.6 Prompts](#36-prompts).
 
 **Manual scheduler trigger**: `POST /v1/tasks/run-scheduled` runs insights/summary once; unaffected by `ENABLE_SCHEDULER=false`. Self-host users can use cron to call this endpoint instead of the scheduler container.
 
@@ -455,18 +468,20 @@ Default `TRANSCRIBE_THEN_ANALYZE` recommended; `DIRECT_MULTIMODAL` requires audi
 
 ### 3.6 Prompts
 
-Three prompt files under `prompts/` drive timeline extraction, daily insights, and periodic summaries. Edit them directly or set custom paths via env vars.
+Four prompt files under `prompts/` drive timeline extraction, daily insights, periodic summaries, and custom operation. Edit them directly or set custom paths via env vars.
 
 | File | Purpose | Trigger | Model |
 |------|---------|---------|-------|
 | `timeline_prompts.md` | Extract core info from screenshots/recordings into `storage/timeline.md` | On each capture upload | VL (screenshot) / Text or VL (audio) |
 | `insights_prompts.md` | Analyze the day's timeline for patterns, intent, and open threads | Daily (see variables below) | Text |
 | `summary_prompts.md` | Longitudinal analysis of timeline + insights; themes, progress, suggestions | Weekly (see variables below) | Text |
+| `customized_prompts.md` | Extra AI processing on timeline extract results, output to `storage/customized/` | Depends on `CUSTOM_OPERATION_MODE`: after each capture or on cron schedule | Text |
 
 **Trigger variables** (Self-host: `.env`. GitHub-only: `Settings -> Secrets and variables -> Actions` -> Variables):
 
 | Prompt | Variable | Meaning | Default |
 |--------|----------|---------|---------|
+| timeline | `TIMELINE_LANG_MODE` | Language routing: `request_locale`=use locale; `content_detect`=auto-detect content language | `request_locale` |
 | timeline | — | Event-driven; runs on each capture, no schedule var | — |
 | insights | `ENABLE_INSIGHTS` | Enable daily insights | `true` |
 | | `INSIGHTS_CRON` | Cron expression (min hour day month weekday) | `0 1 * * *` (daily UTC 01:00) |
@@ -474,15 +489,30 @@ Three prompt files under `prompts/` drive timeline extraction, daily insights, a
 | summary | `ENABLE_SUMMARY` | Enable periodic summary | `true` |
 | | `SUMMARY_CRON` | Cron expression | `0 2 * * 0` (weekly Sunday UTC 02:00) |
 | | `SUMMARY_WINDOW_DAYS` | Summary window in days | `7` |
+| customized | `ENABLE_CUSTOM_OPERATION` | Enable custom operation | `false` |
+| | `CUSTOM_OPERATION_MODE` | `ON_EACH_TRIGGER`=after each capture; `CRON`=on schedule | `ON_EACH_TRIGGER` |
+| | `CUSTOM_OPERATION_CRON` | Cron expression (only when `CRON` mode; requires `ENABLE_SCHEDULER=true`) | `0 */6 * * *` (every 6 hours) |
 
-These take effect when `ENABLE_SCHEDULER=true` and the respective `ENABLE_*` is `true`. Cron format and examples: [3.5 Scheduler](#35-scheduler).
+Insights/summary take effect when `ENABLE_SCHEDULER=true` and the respective `ENABLE_*` is `true`; customized in `ON_EACH_TRIGGER` mode does not depend on scheduler, while `CRON` mode requires it. Cron format and examples: [3.5 Scheduler](#35-scheduler).
 
-**Custom paths**: Set `TIMELINE_PROMPT_FILE`, `INSIGHTS_PROMPT_FILE`, `SUMMARY_PROMPT_FILE` in `.env` or GitHub Actions Variables to point to your own Markdown files.
+**Custom paths**: Set `TIMELINE_PROMPT_FILE`, `INSIGHTS_PROMPT_FILE`, `SUMMARY_PROMPT_FILE`, `CUSTOMIZED_PROMPT_FILE` in `.env` or GitHub Actions Variables to point to your own Markdown files.
+
+**Prompt language routing**: AuraCap supports language-specific prompts for Chinese and English output.
+
+- **Timeline**: Four prompt variants (`timeline_screenshot_zh.md`, `timeline_screenshot_en.md`, `timeline_audio_zh.md`, `timeline_audio_en.md`). Controlled by `TIMELINE_LANG_MODE`:
+  - `request_locale` (default): Select prompt by `locale`—`AURACAP_LOCALE` in shortcuts, `OUTPUT_LOCALE` in GitHub dispatch; change that variable to switch output language, zero extra API calls
+  - `content_detect`: Auto-detect content language (screenshots add 1 VL call per capture; audio uses transcript heuristic, no extra call); falls back to `request_locale` on detection failure
+- **Insights / Summary**: Two variants each (`insights_zh.md`, `insights_en.md`, `summary_zh.md`, `summary_en.md`), always follow `OUTPUT_LOCALE`, no extra variables
+- Non-zh/en locales fall back to `en`; missing new files fall back to original single files (e.g. `timeline_prompts.md`), zero migration cost
+
+**Using customized prompts**: 1. Edit `prompts/customized_prompts.md` (or set `CUSTOMIZED_PROMPT_FILE` to another path); 2. Set `ENABLE_CUSTOM_OPERATION=true` in `.env`; 3. Optional: set `CUSTOM_OPERATION_MODE` (`ON_EACH_TRIGGER` or `CRON`) and `CUSTOM_OPERATION_CRON`. Output goes to `storage/customized/`.
 
 **Screenshots vs recordings**: The default timeline prompt targets **iOS screenshots** (filtering status bar etc.). If you mainly use **recordings**:
 
 - In `TRANSCRIBE_THEN_ANALYZE` mode, the model receives ASR transcript text; the "ignore iOS noise" instructions are harmless and the extraction logic still applies.
 - To better match voice memos, edit the prompt: reduce screenshot-specific guidance and add instructions for meeting notes, ideas, to-dos, and verbal memos.
+
+**Adjusting prompts by focus**: If your captures skew toward work, life, or study, you can edit prompts to emphasize that focus. For example: **work**—meetings, deadlines, decisions, action items; **study**—concepts, memory cues, items to review; **life**—experiences, preferences, to-dos. Edit the relevant files under `prompts/` or set `TIMELINE_PROMPT_FILE`, `INSIGHTS_PROMPT_FILE`, `SUMMARY_PROMPT_FILE` to your own paths; no extra config needed, tune incrementally as you go.
 
 ### 4. Storage Output
 - `storage/timeline.md`: raw time-ordered entries

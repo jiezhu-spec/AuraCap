@@ -38,6 +38,8 @@ class Settings(BaseModel):
 
     audio_mode: Literal["TRANSCRIBE_THEN_ANALYZE", "DIRECT_MULTIMODAL"] = "TRANSCRIBE_THEN_ANALYZE"
 
+    timeline_lang_mode: Literal["content_detect", "request_locale"] = "request_locale"
+
     text_provider: Literal["openai", "anthropic", "google", "groq", "mistral", "mock"] = "mock"
     mm_provider: Literal["openai", "anthropic", "google", "groq", "mistral", "mock"] = "mock"
     asr_provider: Literal["openai", "google", "groq", "mistral", "mock"] = "mock"

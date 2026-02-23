@@ -5,11 +5,17 @@ from datetime import datetime
 
 from backend.app.core.config import Settings
 from backend.app.core.i18n import t
-from backend.app.models.schemas import AudioMode, CaptureRequest, ProcessResult, SyncEvent
+from backend.app.models.schemas import AudioMode, CaptureRequest, MediaType, ProcessResult, SyncEvent
 from backend.app.providers.base import ProviderError
 from backend.app.providers.factory import ProviderBundle
 from backend.app.services.common import load_prompt
 from backend.app.services.custom_operation import run_custom_operation
+from backend.app.services.prompt_router import (
+    detect_lang_from_screenshot,
+    detect_lang_from_transcript,
+    locale_to_lang,
+    resolve_timeline_prompt,
+)
 from backend.app.services.sync_queue import enqueue as sync_enqueue
 from backend.app.services.timeline import append_timeline
 
@@ -22,11 +28,21 @@ class PipelineService:
         self.providers = ProviderBundle(settings)
 
     async def _extract_content(self, request: CaptureRequest) -> str:
-        timeline_prompt = load_prompt(
-            self.settings.timeline_prompt_file,
-            "Extract concise structured facts, actions, and context from the input.",
-        )
-        if request.media_type.value == "screenshot":
+        fallback_prompt = "Extract concise structured facts, actions, and context from the input."
+
+        if request.media_type == MediaType.SCREENSHOT:
+            if self.settings.timeline_lang_mode == "content_detect":
+                lang = await detect_lang_from_screenshot(
+                    self.providers.mm,
+                    request.mime_type,
+                    request.payload_bytes,
+                )
+                if lang is None:
+                    lang = locale_to_lang(request.locale)
+            else:
+                lang = locale_to_lang(request.locale)
+            prompt_path = resolve_timeline_prompt(MediaType.SCREENSHOT, lang, self.settings)
+            timeline_prompt = load_prompt(prompt_path, fallback_prompt)
             return await self.providers.mm.analyze_multimodal(
                 prompt=timeline_prompt,
                 mime_type=request.mime_type,
@@ -36,8 +52,18 @@ class PipelineService:
         audio_mode = AudioMode(self.settings.audio_mode)
         if audio_mode == AudioMode.TRANSCRIBE_THEN_ANALYZE:
             transcript = await self.providers.asr.transcribe_audio(request.mime_type, request.payload_bytes)
+            if self.settings.timeline_lang_mode == "content_detect":
+                lang = detect_lang_from_transcript(transcript)
+            else:
+                lang = locale_to_lang(request.locale)
+            prompt_path = resolve_timeline_prompt(MediaType.AUDIO, lang, self.settings)
+            timeline_prompt = load_prompt(prompt_path, fallback_prompt)
             return await self.providers.text.analyze_text(prompt=timeline_prompt, text=transcript)
 
+        # DIRECT_MULTIMODAL: always use request_locale
+        lang = locale_to_lang(request.locale)
+        prompt_path = resolve_timeline_prompt(MediaType.AUDIO, lang, self.settings)
+        timeline_prompt = load_prompt(prompt_path, fallback_prompt)
         return await self.providers.mm.analyze_multimodal(
             prompt=timeline_prompt,
             mime_type=request.mime_type,

@@ -106,15 +106,16 @@ python backend/main.py
 
 ### 提示词说明
 
-AuraCap 使用三类提示词驱动 AI 分析，均位于 `prompts/` 目录：
+AuraCap 使用四类提示词驱动 AI 分析，均位于 `prompts/` 目录：
 
 | 提示词 | 作用 | 触发时机 |
 |--------|------|----------|
 | `timeline_prompts.md` | 从截图或录音中提取核心信息，写入 timeline | 每次截图/录音时 |
 | `insights_prompts.md` | 通读当日 timeline，发现跨条目的模式与未完成信号 | 每日定时（默认 UTC 01:00） |
 | `summary_prompts.md` | 纵向分析一段时间内的 timeline + insights，归纳轨迹与建议 | 每周定时（默认周日 UTC 02:00） |
+| `customized_prompts.md` | 对 timeline 提取结果做额外 AI 处理，输出到 `storage/customized/` | 每次捕捉后或按 cron 定时（需启用 `ENABLE_CUSTOM_OPERATION`） |
 
-默认 timeline 提示词针对 **iOS 截图** 优化（过滤状态栏等系统噪音）。若你主要使用**录音**，可自行修改 `prompts/timeline_prompts.md`，或通过 `TIMELINE_PROMPT_FILE` 指定自己的文件。详见 [用户手册 3.6 提示词](docs/USERGUIDE.md#36-提示词)。
+Timeline 支持 4 套场景化提示词（截图/录音 × 中文/英文），insights 与 summary 各支持中英文 2 套；通过 `TIMELINE_LANG_MODE` 与 `OUTPUT_LOCALE` 控制语言路由。默认 timeline 提示词针对 **iOS 截图** 优化（过滤状态栏等系统噪音）。若你主要使用**录音**，可自行修改 `prompts/timeline_prompts.md`，或通过 `TIMELINE_PROMPT_FILE` 指定自己的文件；自定义操作提示词可通过 `CUSTOMIZED_PROMPT_FILE` 指定路径。详见 [用户手册 3.6 提示词](docs/USERGUIDE.md#36-提示词)。
 
 ### 下一步
 
@@ -216,15 +217,16 @@ All output is Markdown and can be synced to Notion, Obsidian, or any knowledge m
 
 ### Prompts
 
-AuraCap uses three prompt files under `prompts/` to drive AI analysis:
+AuraCap uses four prompt files under `prompts/` to drive AI analysis:
 
 | Prompt | Purpose | Trigger |
 |--------|---------|---------|
 | `timeline_prompts.md` | Extract key info from screenshots or recordings into timeline | On each capture |
 | `insights_prompts.md` | Analyze the day's timeline for patterns and open threads | Daily (default UTC 01:00) |
 | `summary_prompts.md` | Longitudinal analysis of timeline + insights over a period | Weekly (default Sunday UTC 02:00) |
+| `customized_prompts.md` | Extra AI processing on timeline extract results, output to `storage/customized/` | After each capture or on cron schedule (requires `ENABLE_CUSTOM_OPERATION`) |
 
-The default timeline prompt is tuned for **iOS screenshots** (filtering status bar etc.). If you mainly use **voice recordings**, customize `prompts/timeline_prompts.md` or set `TIMELINE_PROMPT_FILE` to your own file. See [User Guide 3.6 Prompts](docs/USERGUIDE.md#36-prompts).
+Timeline supports four scenario-specific prompts (screenshot/audio × Chinese/English); insights and summary each support two language variants. Language routing is controlled by `TIMELINE_LANG_MODE` and `OUTPUT_LOCALE`. The default timeline prompt is tuned for **iOS screenshots** (filtering status bar etc.). If you mainly use **voice recordings**, customize `prompts/timeline_prompts.md` or set `TIMELINE_PROMPT_FILE` to your own file; custom operation prompt path can be set via `CUSTOMIZED_PROMPT_FILE`. See [User Guide 3.6 Prompts](docs/USERGUIDE.md#36-prompts).
 
 ### Next Steps
 

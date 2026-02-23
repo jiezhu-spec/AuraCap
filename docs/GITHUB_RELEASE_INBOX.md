@@ -33,6 +33,10 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 说明：GitHub 不允许变量名以 `GITHUB_` 开头，故使用 `AURACAP_` 前缀。mock 模式无需配置 Secrets，即可完成端到端验证。
 
+`OUTPUT_LOCALE` 同时控制 insights/summary 的提示词语言，以及 timeline 在 `request_locale` 模式下的提示词选择。快捷指令中的 `AURACAP_LOCALE` 在每次请求时传入，同样决定 timeline 输出语言（当 `TIMELINE_LANG_MODE=request_locale` 时）。
+
+**可选**：`TIMELINE_LANG_MODE`（默认 `request_locale`）可设为 `content_detect`，让 timeline 自动检测截图/录音内容语言选提示词；截图每次会多一次 VL 调用。
+
 若使用真实模型（OpenAI、Gemini、SiliconFlow 等），需额外配置 Variables 和 Secrets，详见 [USERGUIDE 配置说明](USERGUIDE.md#3-配置说明两条路径通用)。
 
 **可选：调度配置**：`ENABLE_SCHEDULER`（默认 `true`）控制是否运行 insights/summary 定时任务；设为 `false` 可完全关闭。其余调度变量（`INSIGHTS_CRON`、`SUMMARY_CRON` 等）详见 [USERGUIDE 3.5 自动化调度](USERGUIDE.md#35-自动化调度)。
@@ -58,7 +62,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ### 二、在 iPhone 上搭快捷指令
 
-> **快捷方式**：若不想从头手动配置，可 [下载已脱敏的快捷指令模板](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。
+> **快捷方式：若不想从头手动配置，可 [下载已脱敏的快捷指令模板（截图）](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/19b273bd82af4458aee7623f79dd7f11)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。**
 
 ### 步骤 5：新建快捷指令并添加变量
 
@@ -280,6 +284,10 @@ Go to `Settings -> Secrets and variables -> Actions`, click `Variables`, add:
 
 Note: GitHub disallows variable names starting with `GITHUB_`, so we use `AURACAP_` prefix. Mock mode needs no Secrets for end-to-end verification.
 
+`OUTPUT_LOCALE` controls insights/summary prompt language and timeline prompt selection in `request_locale` mode. The shortcut variable `AURACAP_LOCALE` is sent per request and likewise determines timeline output language when `TIMELINE_LANG_MODE=request_locale`.
+
+**Optional**: `TIMELINE_LANG_MODE` (default `request_locale`) can be set to `content_detect` to auto-detect screenshot/audio content language; screenshots add 1 VL call per capture.
+
 For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. See [USERGUIDE configuration](USERGUIDE.md#3-configuration-both-modes).
 
 **Optional — Scheduler**: `ENABLE_SCHEDULER` (default `true`) controls whether insights/summary scheduled tasks run; set to `false` to fully disable. For other scheduler variables (`INSIGHTS_CRON`, `SUMMARY_CRON`, etc.), see [USERGUIDE 3.5 Scheduler](USERGUIDE.md#35-scheduler).
@@ -305,7 +313,7 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 
 ### Part II: Build Shortcut on iPhone
 
-> **Shortcut**: Prefer not to configure from scratch? [Download the pre-configured shortcut](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985) (personal info already masked). Import it, then fill in your GitHub username, token, `release_id`, etc.
+> **Shortcut: Prefer not to configure from scratch? [Screenshot template](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985), [Voice template](https://www.icloud.com/shortcuts/19b273bd82af4458aee7623f79dd7f11) (personal info already masked). Import one, then fill in your GitHub username, token, `release_id`, etc.**
 
 #### Step 5: New Shortcut and Variables
 

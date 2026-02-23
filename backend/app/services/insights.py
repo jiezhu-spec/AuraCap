@@ -5,6 +5,7 @@ from datetime import date
 from backend.app.core.config import Settings
 from backend.app.providers.base import BaseProvider
 from backend.app.services.common import load_prompt
+from backend.app.services.prompt_router import locale_to_lang, resolve_insights_prompt
 from backend.app.services.timeline import entries_by_day
 
 
@@ -20,7 +21,9 @@ async def run_daily_insights(settings: Settings, provider: BaseProvider, target_
     if not entries:
         return None
 
-    prompt = load_prompt(settings.insights_prompt_file, "Generate concise daily insights from timeline entries.")
+    lang = locale_to_lang(settings.output_locale)
+    prompt_path = resolve_insights_prompt(lang, settings)
+    prompt = load_prompt(prompt_path, "Generate concise daily insights from timeline entries.")
     body = _build_day_payload(entries)
     result = await provider.analyze_text(prompt=prompt, text=body)
 

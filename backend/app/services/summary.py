@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from backend.app.core.config import Settings
 from backend.app.providers.base import BaseProvider
 from backend.app.services.common import load_prompt
+from backend.app.services.prompt_router import locale_to_lang, resolve_summary_prompt
 from backend.app.services.timeline import entries_by_range
 
 
@@ -30,7 +31,9 @@ async def run_periodic_summary(settings: Settings, provider: BaseProvider, now_d
     )
     insights_text = _collect_insight_text(settings, start_day, now_day)
 
-    prompt = load_prompt(settings.summary_prompt_file, "Summarize trajectory, risks, and next actions.")
+    lang = locale_to_lang(settings.output_locale)
+    prompt_path = resolve_summary_prompt(lang, settings)
+    prompt = load_prompt(prompt_path, "Summarize trajectory, risks, and next actions.")
     merged = f"# Timeline\n{timeline_text}\n\n# Insights\n{insights_text}"
     output = await provider.analyze_text(prompt=prompt, text=merged)
 

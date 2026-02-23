@@ -49,6 +49,7 @@ jobs:
       ENABLE_SUMMARY: ${{ vars.ENABLE_SUMMARY || 'true' }}
       ENABLE_CUSTOM_OPERATION: ${{ vars.ENABLE_CUSTOM_OPERATION || 'false' }}
       AUDIO_MODE: ${{ vars.AUDIO_MODE || 'TRANSCRIBE_THEN_ANALYZE' }}
+      TIMELINE_LANG_MODE: ${{ vars.TIMELINE_LANG_MODE || 'request_locale' }}
 
       TEXT_PROVIDER: ${{ vars.TEXT_PROVIDER || 'mock' }}
       MM_PROVIDER: ${{ vars.MM_PROVIDER || 'mock' }}
