@@ -123,7 +123,15 @@ python scripts/build_shortcuts.py
 
 **自部署**：在仓库根目录 `.env` 中配置。**GitHub-only**：在 `Settings -> Secrets and variables -> Actions` 的 Variables 和 Secrets 中配置。
 
-推荐先统一 `TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER` 为同一供应商，跑通后再混搭。
+**Provider 变量用途**：
+
+| 变量 | 用途 | 典型调用场景 |
+|------|------|--------------|
+| `TEXT_PROVIDER` | 文本分析模型 | 每日 insights、定期 summary、录音转写后的文案分析（`TRANSCRIBE_THEN_ANALYZE` 模式） |
+| `MM_PROVIDER` | 多模态模型（图/音） | 截图分析、录音直接分析（`DIRECT_MULTIMODAL` 模式） |
+| `ASR_PROVIDER` | 语音转文字模型 | 录音转写（仅 `TRANSCRIBE_THEN_ANALYZE` 模式；`DIRECT_MULTIMODAL` 下可忽略） |
+
+推荐先统一三个 provider 为同一供应商，跑通后再混搭。
 
 **OPENAI 变量说明**：`OPENAI_*` 适用于 OpenAI 官方 API 及所有 **OpenAI API 兼容** 的第三方服务（SiliconFlow、OpenRouter、DeepSeek、通义等）。接入第三方时只需改 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY`，模型名按对应服务商文档。
 
@@ -261,6 +269,64 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 
 **按侧重调整提示词**：若你的记录以工作、生活或学习某一类为主，可主动编辑提示词以强调对应侧重。例如：以**工作**为主时，侧重会议、deadline、决策、行动项；以**学习**为主时，侧重概念、记忆点、待复习；以**生活**为主时，侧重体验、偏好、待办。直接编辑 `prompts/` 下的对应文件，或通过 `TIMELINE_PROMPT_FILE`、`INSIGHTS_PROMPT_FILE`、`SUMMARY_PROMPT_FILE` 指定自己的路径；无需额外配置，按需逐步微调即可。
 
+### 3.7 变量参考速查表
+
+以下为常用变量用途速查，完整列表见 `.env.example`。
+
+| 变量 | 用途 | 默认值 |
+|------|------|--------|
+| **输出与时间** | | |
+| `OUTPUT_LOCALE` | 输出语言（insights/summary 提示词、timeline 标题、sync 推送） | `zh-CN` |
+| `DEFAULT_TIMEZONE` | timeline 条目与 insights/summary 日期分组的时区 | `local` |
+| `TIMESTAMP_FORMAT` | 时间戳格式（Python strftime） | `%Y-%m-%d %H:%M:%S %Z` |
+| **存储路径** | | |
+| `STORAGE_ROOT` | 存储根目录 | `storage` |
+| `TIMELINE_FILE` | timeline 文件路径 | `storage/timeline.md` |
+| `INSIGHTS_DIR` | 每日洞察输出目录 | `storage/insights` |
+| `SUMMARY_DIR` | 定期摘要输出目录 | `storage/summary` |
+| `CUSTOMIZED_DIR` | 自定义操作输出目录 | `storage/customized` |
+| **Provider** | | |
+| `TEXT_PROVIDER` | 文本分析（insights、summary、录音转写后分析） | `mock` |
+| `MM_PROVIDER` | 多模态（截图分析、DIRECT_MULTIMODAL 下录音） | `mock` |
+| `ASR_PROVIDER` | 语音转文字（仅 TRANSCRIBE_THEN_ANALYZE 模式） | `mock` |
+| `UNIFIED_PROVIDER` | 统一模式：设为 `openai` 等时，三者合一，单 API key | 留空 |
+| `PROVIDER_TIMEOUT_SECONDS` | API 调用超时秒数 | `120` |
+| **功能开关** | | |
+| `EXTRACT_ONLY` | 仅做 timeline 提取，跳过 insights/summary | `false` |
+| `ENABLE_SCHEDULER` | scheduler 总开关 | `true` |
+| `ENABLE_INSIGHTS` | 是否启用每日洞察 | `true` |
+| `ENABLE_SUMMARY` | 是否启用定期摘要 | `true` |
+| `ENABLE_CUSTOM_OPERATION` | 是否启用自定义操作 | `false` |
+| **音频** | | |
+| `AUDIO_MODE` | 录音处理：`TRANSCRIBE_THEN_ANALYZE` 或 `DIRECT_MULTIMODAL` | `TRANSCRIBE_THEN_ANALYZE` |
+| **提示词** | | |
+| `TIMELINE_LANG_MODE` | timeline 语言路由：`request_locale` 或 `content_detect` | `request_locale` |
+| `TIMELINE_PROMPT_FILE` 等 | 各提示词文件路径（可覆盖默认） | 见 `.env.example` |
+| **调度** | | |
+| `INSIGHTS_CRON` | 洞察执行时间（cron） | `0 1 * * *` |
+| `INSIGHTS_TARGET_DAY_OFFSET` | 洞察目标日：0=当天，1=前一天 | `1` |
+| `SUMMARY_CRON` | 摘要执行时间（cron） | `0 2 * * 0` |
+| `SUMMARY_WINDOW_DAYS` | 摘要覆盖天数 | `7` |
+| `CUSTOM_OPERATION_MODE` | 自定义操作：`ON_EACH_TRIGGER` 或 `CRON` | `ON_EACH_TRIGGER` |
+| `CUSTOM_OPERATION_CRON` | 自定义操作 cron（仅 CRON 模式） | `0 */6 * * *` |
+| **输入限制** | | |
+| `MAX_UPLOAD_MB` | 上传大小上限（MB） | `25` |
+| `MAX_BASE64_CHARS` | `/json` 接口 Base64 长度上限 | `2000000` |
+| `ALLOWED_IMAGE_MIME` | 允许的图片 MIME 类型 | `image/png,image/jpeg,image/heic` |
+| `ALLOWED_AUDIO_MIME` | 允许的音频 MIME 类型 | `audio/m4a,...` |
+| **同步** | | |
+| `SYNC_ENABLE` | 是否启用 sync 推送 | `false` |
+| `SYNC_DEFAULT_FREQUENCY` | 推送频率：`ON_EVENT`、`DAILY`、`CRON` | `ON_EVENT` |
+| `SYNC_DEFAULT_CRON` | 批量推送时间（DAILY/CRON 时） | `0 9 * * *` |
+| `SYNC_SEND_TIMELINE` 等 | 各类型是否推送 | 见 `.env.example` |
+| `FEISHU_*`、`TELEGRAM_*` 等 | 各渠道 webhook/token 配置 | — |
+| **安全** | | |
+| `REQUEST_SIGNATURE_SECRET` | 请求签名密钥（启用校验时） | 留空 |
+| `SKIP_SIGNATURE_VERIFICATION` | 是否跳过签名校验 | `true` |
+| **GitHub-only** | | |
+| `AURACAP_RELEASE_INBOX_TAG` | Inbox Release 标签 | `auracap-inbox` |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | 处理后是否删除 asset | `true` |
+
 ### 4. 存储输出
 - `storage/timeline.md`：按时间顺序的原始记录
 - `storage/insights/`：每日洞察
@@ -390,7 +456,15 @@ Use `/raw` or `/upload` when hitting `PAYLOAD_TOO_LARGE`.
 
 **Self-host**: Configure in root `.env`. **GitHub-only**: Configure in `Settings -> Secrets and variables -> Actions` (Variables and Secrets).
 
-Use the same provider for `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER` initially; mix after it works.
+**Provider variable purposes**:
+
+| Variable | Purpose | Typical use |
+|----------|---------|-------------|
+| `TEXT_PROVIDER` | Text analysis model | Daily insights, periodic summary, transcript analysis (when `TRANSCRIBE_THEN_ANALYZE`) |
+| `MM_PROVIDER` | Multimodal model (image/audio) | Screenshot analysis, direct audio analysis (when `DIRECT_MULTIMODAL`) |
+| `ASR_PROVIDER` | Speech-to-text model | Audio transcription (only when `TRANSCRIBE_THEN_ANALYZE`; can ignore when `DIRECT_MULTIMODAL`) |
+
+Use the same provider for all three initially; mix after it works.
 
 **OPENAI variables**: `OPENAI_*` applies to OpenAI official API and all **OpenAI API compatible** third-party services (SiliconFlow, OpenRouter, DeepSeek, etc.). For third-party: change `OPENAI_BASE_URL` and `OPENAI_API_KEY`; model names per provider docs.
 
@@ -527,6 +601,64 @@ Insights/summary take effect when `ENABLE_SCHEDULER=true` and the respective `EN
 - To better match voice memos, edit the prompt: reduce screenshot-specific guidance and add instructions for meeting notes, ideas, to-dos, and verbal memos.
 
 **Adjusting prompts by focus**: If your captures skew toward work, life, or study, you can edit prompts to emphasize that focus. For example: **work**—meetings, deadlines, decisions, action items; **study**—concepts, memory cues, items to review; **life**—experiences, preferences, to-dos. Edit the relevant files under `prompts/` or set `TIMELINE_PROMPT_FILE`, `INSIGHTS_PROMPT_FILE`, `SUMMARY_PROMPT_FILE` to your own paths; no extra config needed, tune incrementally as you go.
+
+### 3.7 Variable Reference (Quick Lookup)
+
+Common variables and their purposes. Full list in `.env.example`.
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| **Output & time** | | |
+| `OUTPUT_LOCALE` | Output language (insights/summary prompts, timeline titles, sync) | `zh-CN` |
+| `DEFAULT_TIMEZONE` | Timezone for timeline entries and insights/summary day grouping | `local` |
+| `TIMESTAMP_FORMAT` | Timestamp format (Python strftime) | `%Y-%m-%d %H:%M:%S %Z` |
+| **Storage paths** | | |
+| `STORAGE_ROOT` | Storage root directory | `storage` |
+| `TIMELINE_FILE` | Timeline file path | `storage/timeline.md` |
+| `INSIGHTS_DIR` | Daily insights output directory | `storage/insights` |
+| `SUMMARY_DIR` | Periodic summary output directory | `storage/summary` |
+| `CUSTOMIZED_DIR` | Custom operation output directory | `storage/customized` |
+| **Provider** | | |
+| `TEXT_PROVIDER` | Text analysis (insights, summary, transcript analysis) | `mock` |
+| `MM_PROVIDER` | Multimodal (screenshot, audio when DIRECT_MULTIMODAL) | `mock` |
+| `ASR_PROVIDER` | Speech-to-text (only when TRANSCRIBE_THEN_ANALYZE) | `mock` |
+| `UNIFIED_PROVIDER` | Unified mode: set to `openai` etc. to use one provider, single API key | leave empty |
+| `PROVIDER_TIMEOUT_SECONDS` | API call timeout in seconds | `120` |
+| **Feature flags** | | |
+| `EXTRACT_ONLY` | Only timeline extract; skip insights/summary | `false` |
+| `ENABLE_SCHEDULER` | Scheduler master switch | `true` |
+| `ENABLE_INSIGHTS` | Enable daily insights | `true` |
+| `ENABLE_SUMMARY` | Enable periodic summary | `true` |
+| `ENABLE_CUSTOM_OPERATION` | Enable custom operation | `false` |
+| **Audio** | | |
+| `AUDIO_MODE` | Recording: `TRANSCRIBE_THEN_ANALYZE` or `DIRECT_MULTIMODAL` | `TRANSCRIBE_THEN_ANALYZE` |
+| **Prompts** | | |
+| `TIMELINE_LANG_MODE` | Timeline language routing: `request_locale` or `content_detect` | `request_locale` |
+| `TIMELINE_PROMPT_FILE` etc. | Custom prompt file paths | see `.env.example` |
+| **Schedule** | | |
+| `INSIGHTS_CRON` | Insights run time (cron) | `0 1 * * *` |
+| `INSIGHTS_TARGET_DAY_OFFSET` | Insights target day: 0=today, 1=yesterday | `1` |
+| `SUMMARY_CRON` | Summary run time (cron) | `0 2 * * 0` |
+| `SUMMARY_WINDOW_DAYS` | Summary window in days | `7` |
+| `CUSTOM_OPERATION_MODE` | Custom op: `ON_EACH_TRIGGER` or `CRON` | `ON_EACH_TRIGGER` |
+| `CUSTOM_OPERATION_CRON` | Custom op cron (CRON mode only) | `0 */6 * * *` |
+| **Input limits** | | |
+| `MAX_UPLOAD_MB` | Upload size limit (MB) | `25` |
+| `MAX_BASE64_CHARS` | `/json` Base64 length limit | `2000000` |
+| `ALLOWED_IMAGE_MIME` | Allowed image MIME types | `image/png,image/jpeg,image/heic` |
+| `ALLOWED_AUDIO_MIME` | Allowed audio MIME types | `audio/m4a,...` |
+| **Sync** | | |
+| `SYNC_ENABLE` | Enable sync push | `false` |
+| `SYNC_DEFAULT_FREQUENCY` | Push frequency: `ON_EVENT`, `DAILY`, `CRON` | `ON_EVENT` |
+| `SYNC_DEFAULT_CRON` | Batch push time (when DAILY/CRON) | `0 9 * * *` |
+| `SYNC_SEND_TIMELINE` etc. | Per-type push toggles | see `.env.example` |
+| `FEISHU_*`, `TELEGRAM_*` etc. | Channel webhook/token config | — |
+| **Security** | | |
+| `REQUEST_SIGNATURE_SECRET` | Request signature secret (when verification enabled) | leave empty |
+| `SKIP_SIGNATURE_VERIFICATION` | Skip signature verification | `true` |
+| **GitHub-only** | | |
+| `AURACAP_RELEASE_INBOX_TAG` | Inbox Release tag | `auracap-inbox` |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | Delete asset after processing | `true` |
 
 ### 4. Storage Output
 - `storage/timeline.md`: raw time-ordered entries

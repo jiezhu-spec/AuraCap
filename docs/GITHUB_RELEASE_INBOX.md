@@ -21,16 +21,18 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 进入 `Settings -> Secrets and variables -> Actions`，点 `Variables` 页签，添加：
 
-| 变量名 | 值 |
-|--------|-----|
-| `TEXT_PROVIDER` | `mock` |
-| `MM_PROVIDER` | `mock` |
-| `ASR_PROVIDER` | `mock` |
-| `OUTPUT_LOCALE` | `zh-CN` |
-| `DEFAULT_TIMEZONE` | `local` |
-| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` |
-| `UNIFIED_PROVIDER`（可选） | 统一模式：设为 `openai`、`google` 等时，TEXT/MM/ASR 均用同一 provider |
+| 变量名 | 值 | 用途 |
+|--------|-----|------|
+| `TEXT_PROVIDER` | `mock` | 文本分析（insights、summary、录音转写后分析） |
+| `MM_PROVIDER` | `mock` | 多模态（截图分析、DIRECT_MULTIMODAL 下录音） |
+| `ASR_PROVIDER` | `mock` | 语音转文字（仅 TRANSCRIBE_THEN_ANALYZE 模式） |
+| `OUTPUT_LOCALE` | `zh-CN` | 输出语言（insights/summary 提示词、timeline 标题） |
+| `DEFAULT_TIMEZONE` | `local` | 时间戳时区 |
+| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | Inbox Release 标签 |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | 处理后是否删除 asset |
+| `UNIFIED_PROVIDER`（可选） | 留空 | 统一模式：设为 `openai`、`google` 等时，TEXT/MM/ASR 均用同一 provider |
+
+完整变量说明见 [USERGUIDE 3.7 变量参考速查表](USERGUIDE.md#37-变量参考速查表)。
 
 说明：GitHub 不允许变量名以 `GITHUB_` 开头，故使用 `AURACAP_` 前缀。mock 模式无需配置 Secrets，即可完成端到端验证。
 
@@ -273,16 +275,18 @@ Fork `AuraCap` to your GitHub account. All following steps are on your fork.
 
 Go to `Settings -> Secrets and variables -> Actions`, click `Variables`, add:
 
-| Variable | Value |
-|----------|-------|
-| `TEXT_PROVIDER` | `mock` |
-| `MM_PROVIDER` | `mock` |
-| `ASR_PROVIDER` | `mock` |
-| `OUTPUT_LOCALE` | `zh-CN` |
-| `DEFAULT_TIMEZONE` | `local` |
-| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` |
-| `UNIFIED_PROVIDER` (optional) | Unified mode: set to `openai`, `google`, etc. to use one provider for TEXT/MM/ASR |
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `TEXT_PROVIDER` | `mock` | Text analysis (insights, summary, transcript analysis) |
+| `MM_PROVIDER` | `mock` | Multimodal (screenshot, audio when DIRECT_MULTIMODAL) |
+| `ASR_PROVIDER` | `mock` | Speech-to-text (only when TRANSCRIBE_THEN_ANALYZE) |
+| `OUTPUT_LOCALE` | `zh-CN` | Output language (insights/summary prompts, timeline titles) |
+| `DEFAULT_TIMEZONE` | `local` | Timestamp timezone |
+| `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | Inbox Release tag |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | Delete asset after processing |
+| `UNIFIED_PROVIDER` (optional) | leave empty | Unified mode: set to `openai`, `google`, etc. to use one provider for TEXT/MM/ASR |
+
+Full variable reference: [USERGUIDE 3.7 Variable Reference](USERGUIDE.md#37-variable-reference-quick-lookup).
 
 Note: GitHub disallows variable names starting with `GITHUB_`, so we use `AURACAP_` prefix. Mock mode needs no Secrets for end-to-end verification.
 
