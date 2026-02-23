@@ -31,6 +31,7 @@ jobs:
       TEXT_PROVIDER: ${{ vars.TEXT_PROVIDER || 'mock' }}
       MM_PROVIDER: ${{ vars.MM_PROVIDER || 'mock' }}
       ASR_PROVIDER: ${{ vars.ASR_PROVIDER || 'mock' }}
+      UNIFIED_PROVIDER: ${{ vars.UNIFIED_PROVIDER || '' }}
       PROVIDER_TIMEOUT_SECONDS: ${{ vars.PROVIDER_TIMEOUT_SECONDS || '120' }}
 
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

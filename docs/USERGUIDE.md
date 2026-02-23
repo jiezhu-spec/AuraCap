@@ -125,6 +125,8 @@ python scripts/build_shortcuts.py
 
 推荐先统一 `TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER` 为同一供应商，跑通后再混搭。
 
+**OPENAI 变量说明**：`OPENAI_*` 适用于 OpenAI 官方 API 及所有 **OpenAI API 兼容** 的第三方服务（SiliconFlow、OpenRouter、DeepSeek、通义等）。接入第三方时只需改 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY`，模型名按对应服务商文档。
+
 #### OpenAI（自部署 .env 示例）
 ```env
 TEXT_PROVIDER=openai
@@ -153,8 +155,11 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 #### Gemini（GitHub-only Variables + Secrets）
 Variables：`TEXT_PROVIDER=google`、`MM_PROVIDER=google`、`ASR_PROVIDER=google`、`GOOGLE_TEXT_MODEL`、`GOOGLE_MM_MODEL`、`GOOGLE_ASR_MODEL`、`OUTPUT_LOCALE`、`DEFAULT_TIMEZONE`。Secrets：`GOOGLE_API_KEY`。
 
-#### OpenAI 兼容服务（SiliconFlow、OpenRouter、DeepSeek、通义等）
-只需改 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY`。以 SiliconFlow 为例：`OPENAI_BASE_URL=https://api.siliconflow.cn/v1`（中国区），模型名在 [SiliconFlow 文档](https://docs.siliconflow.cn/) 中确认。
+#### 第三方 OpenAI 兼容服务
+接入 SiliconFlow、OpenRouter、DeepSeek、通义等时，使用 `OPENAI_*` 变量（`OPENAI_BASE_URL`、`OPENAI_API_KEY`、`OPENAI_TEXT_MODEL` 等），见上方说明。以 SiliconFlow 为例：`OPENAI_BASE_URL=https://api.siliconflow.cn/v1`（中国区），模型名在 [SiliconFlow 文档](https://docs.siliconflow.cn/) 中确认。
+
+#### 统一 Provider 模式
+设 `UNIFIED_PROVIDER=openai`（或 `google`、`groq`、`mistral`）时，所有 text/mm/asr 请求统一到该 provider，只需配置一个 API key。此时 `TEXT_PROVIDER`、`MM_PROVIDER`、`ASR_PROVIDER` 被**完全忽略**。可将 `OPENAI_TEXT_MODEL`、`OPENAI_MM_MODEL`、`OPENAI_ASR_MODEL` 设为同一模型（如全模态模型）。支持 `openai`、`google`、`groq`、`mistral`、`mock`（不含 anthropic，因其不支持 ASR）。
 
 #### 其他 Provider（Anthropic、Groq、Mistral）
 config 支持 Anthropic、Groq、Mistral，变量命名见 `.env.example`（如 `ANTHROPIC_API_KEY`、`GROQ_API_KEY`、`MISTRAL_API_KEY` 及对应 `*_MODEL`、`*_BASE_URL`）。
@@ -180,6 +185,8 @@ config 支持 Anthropic、Groq、Mistral，变量命名见 `.env.example`（如 
 | `DIRECT_MULTIMODAL` | 直接把音频送给 VL 模型 | `MM_PROVIDER`（需支持音频输入） |
 
 推荐默认 `TRANSCRIBE_THEN_ANALYZE`，兼容性更好；`DIRECT_MULTIMODAL` 需确认模型支持音频 multimodal。
+
+**当 `AUDIO_MODE=DIRECT_MULTIMODAL` 时**：录音直接发给 MM 模型，**不经过 ASR**。此时 `ASR_PROVIDER` 与 `OPENAI_ASR_MODEL` 等 ASR 配置**可忽略**，无需配置。
 
 ### 3.4 功能开关
 - **EXTRACT_ONLY**：为 `true` 时仅做 timeline 提取，**跳过** insights 与 summary；此时 `ENABLE_INSIGHTS`/`ENABLE_SUMMARY` 被忽略
@@ -385,6 +392,8 @@ Use `/raw` or `/upload` when hitting `PAYLOAD_TOO_LARGE`.
 
 Use the same provider for `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER` initially; mix after it works.
 
+**OPENAI variables**: `OPENAI_*` applies to OpenAI official API and all **OpenAI API compatible** third-party services (SiliconFlow, OpenRouter, DeepSeek, etc.). For third-party: change `OPENAI_BASE_URL` and `OPENAI_API_KEY`; model names per provider docs.
+
 #### OpenAI (Self-host .env example)
 ```env
 TEXT_PROVIDER=openai
@@ -413,8 +422,11 @@ GOOGLE_ASR_MODEL=gemini-2.0-flash
 #### Gemini (GitHub-only Variables + Secrets)
 Variables: `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER`, `GOOGLE_*_MODEL`, `OUTPUT_LOCALE`, `DEFAULT_TIMEZONE`. Secrets: `GOOGLE_API_KEY`.
 
-#### OpenAI-compatible services (SiliconFlow, OpenRouter, DeepSeek, etc.)
-Change `OPENAI_BASE_URL` and `OPENAI_API_KEY`. For SiliconFlow: `OPENAI_BASE_URL=https://api.siliconflow.cn/v1` (China). See [SiliconFlow docs](https://docs.siliconflow.cn/) for model names.
+#### Third-party OpenAI-compatible services
+For SiliconFlow, OpenRouter, DeepSeek, etc., use `OPENAI_*` variables (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_TEXT_MODEL`, etc.), see above. For SiliconFlow: `OPENAI_BASE_URL=https://api.siliconflow.cn/v1` (China). See [SiliconFlow docs](https://docs.siliconflow.cn/) for model names.
+
+#### Unified Provider mode
+Set `UNIFIED_PROVIDER=openai` (or `google`, `groq`, `mistral`) to route all text/mm/asr requests to one provider with a single API key. When set, `TEXT_PROVIDER`, `MM_PROVIDER`, `ASR_PROVIDER` are **fully ignored**. You can set `OPENAI_TEXT_MODEL`, `OPENAI_MM_MODEL`, `OPENAI_ASR_MODEL` to the same model (e.g. full multimodal). Supports `openai`, `google`, `groq`, `mistral`, `mock` (excludes anthropic, which has no ASR support).
 
 #### Other providers (Anthropic, Groq, Mistral)
 Config supports Anthropic, Groq, Mistral; variable names in `.env.example` (e.g. `ANTHROPIC_API_KEY`, `GROQ_API_KEY`, `MISTRAL_API_KEY` and corresponding `*_MODEL`, `*_BASE_URL`).
@@ -440,6 +452,8 @@ Two modes via `AUDIO_MODE`:
 | `DIRECT_MULTIMODAL` | Audio sent directly to VL model | `MM_PROVIDER` (must support audio) |
 
 Default `TRANSCRIBE_THEN_ANALYZE` recommended; `DIRECT_MULTIMODAL` requires audio-capable model.
+
+**When `AUDIO_MODE=DIRECT_MULTIMODAL`**: Audio goes directly to the MM model, **bypassing ASR**. `ASR_PROVIDER` and `OPENAI_ASR_MODEL` etc. can be **ignored**; no need to configure.
 
 ### 3.4 Feature Flags
 - **EXTRACT_ONLY**: when `true`, only timeline extract; **skips** insights and summary; `ENABLE_INSIGHTS`/`ENABLE_SUMMARY` ignored

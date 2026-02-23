@@ -34,6 +34,8 @@
   - 新增 `TIMELINE_LANG_MODE` 配置（默认 `request_locale`）：`request_locale` 按 `AURACAP_LOCALE`/`OUTPUT_LOCALE` 选提示词；`content_detect` 自动检测截图/录音内容语言（截图需额外 VL 调用，录音用 CJK 字符比例启发式检测）
   - Insights/Summary 始终通过 `OUTPUT_LOCALE` 路由至对应语言提示词
   - 所有语言专属提示词文件均缺失时自动回退到原有通用提示词文件，零迁移成本
+- 统一 Provider 模式：`UNIFIED_PROVIDER` 可将 text/mm/asr 统一到同一 provider，只需配置一个 API key；支持 openai、google、groq、mistral、mock（不含 anthropic）
+- 文档澄清：`DIRECT_MULTIMODAL` 下 ASR 配置可忽略；`OPENAI_*` 适用于 OpenAI 官方及所有 OpenAI API 兼容的第三方服务（SiliconFlow、OpenRouter、DeepSeek 等）
 - 提示词重写：`timeline_prompts.md`、`insights_prompts.md`、`summary_prompts.md` 全部重写，增强中文输出与场景适配
   - timeline：针对 iOS 截图优化，过滤状态栏等系统噪音，按内容类型自适应提取，输出核心内容/行动项/待确认
   - insights：跨条目模式分析，今日焦点、隐含意图、未完成信号、值得跟进内容
@@ -119,6 +121,8 @@
   - New `TIMELINE_LANG_MODE` setting (default `request_locale`): `request_locale` uses `AURACAP_LOCALE`/`OUTPUT_LOCALE` for prompt selection; `content_detect` auto-detects content language (screenshots incur 1 extra VL call; audio uses CJK character ratio heuristic)
   - Insights/Summary always route to the language-specific prompt via `OUTPUT_LOCALE`
   - Graceful fallback to existing generic prompt files when language-specific variants are absent — zero migration cost
+- Unified Provider mode: `UNIFIED_PROVIDER` routes text/mm/asr to one provider with a single API key; supports openai, google, groq, mistral, mock (excludes anthropic)
+- Doc clarification: ASR config can be ignored when `DIRECT_MULTIMODAL`; `OPENAI_*` applies to OpenAI official and all OpenAI API compatible third-party services (SiliconFlow, OpenRouter, DeepSeek, etc.)
 - Prompt rewrites: `timeline_prompts.md`, `insights_prompts.md`, `summary_prompts.md` rewritten for better Chinese output and scene adaptation
   - timeline: iOS screenshot optimization, filter status bar etc., content-type adaptive extraction, output 核心内容/行动项/待确认
   - insights: cross-entry pattern analysis (今日焦点, 隐含意图, 未完成信号, 值得跟进)

@@ -43,6 +43,7 @@ class Settings(BaseModel):
     text_provider: Literal["openai", "anthropic", "google", "groq", "mistral", "mock"] = "mock"
     mm_provider: Literal["openai", "anthropic", "google", "groq", "mistral", "mock"] = "mock"
     asr_provider: Literal["openai", "google", "groq", "mistral", "mock"] = "mock"
+    unified_provider: Literal["", "openai", "google", "groq", "mistral", "mock"] = ""
 
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"

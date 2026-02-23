@@ -61,6 +61,10 @@ def build_provider(kind: str, settings: Settings) -> BaseProvider:
 
 class ProviderBundle:
     def __init__(self, settings: Settings) -> None:
-        self.text = build_provider(settings.text_provider, settings)
-        self.mm = build_provider(settings.mm_provider, settings)
-        self.asr = build_provider(settings.asr_provider, settings)
+        if settings.unified_provider:
+            p = build_provider(settings.unified_provider, settings)
+            self.text = self.mm = self.asr = p
+        else:
+            self.text = build_provider(settings.text_provider, settings)
+            self.mm = build_provider(settings.mm_provider, settings)
+            self.asr = build_provider(settings.asr_provider, settings)

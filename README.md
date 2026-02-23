@@ -21,11 +21,11 @@
 
 ### 介绍
 
-AuraCap 是一条从"即时捕捉"到"结构化沉淀"的通路：通过 **iOS 快捷指令**完成截图或录音，再由 AI 自动提取信息、归纳要点并写入时间线。不改变原有习惯，只是把原本会散落的信息，持续整理成可检索、可复盘的知识资产。
+AuraCap 是首个将 **GitHub Release 作为瞬态中间件**（Transient Middleware）的开源项目：iOS 快捷指令把截图或录音上传至 Release Assets，GitHub Actions 自动拉取、AI 处理并写入时间线——全程在 GitHub 安全边界内闭环，无需 S3、无需图床、无需暴露 Webhook。**Fork 仓库即完成部署，运行成本为零。**
 
 ### 解决什么问题
 
-多数信息系统的问题，不在于记录能力不足，而在于记录与整理被拆成了两件事：当下来不及整理，事后也很难回到现场。AuraCap 的目标，是把这两件事重新连接起来，让"捕捉"天然通向"沉淀"。
+多数信息系统的记录与整理是两件事：当下来不及整理，事后很难回到现场。而大多数"零成本"方案的代价是暗中依赖第三方存储，或将你锁在特定平台。AuraCap 用一种"黑客精神"解开这个结：让 GitHub 自身的基础设施承担全部中转与处理，让"捕捉"天然通向"沉淀"，数据始终由你掌控。
 
 ### 为什么选择 Action（快捷指令）作为入口
 
@@ -115,7 +115,7 @@ AuraCap 使用四类提示词驱动 AI 分析，均位于 `prompts/` 目录：
 | `summary_prompts.md` | 纵向分析一段时间内的 timeline + insights，归纳轨迹与建议 | 每周定时（默认周日 UTC 02:00） |
 | `customized_prompts.md` | 对 timeline 提取结果做额外 AI 处理，输出到 `storage/customized/` | 每次捕捉后或按 cron 定时（需启用 `ENABLE_CUSTOM_OPERATION`） |
 
-Timeline 支持 4 套场景化提示词（截图/录音 × 中文/英文），insights 与 summary 各支持中英文 2 套；通过 `TIMELINE_LANG_MODE` 与 `OUTPUT_LOCALE` 控制语言路由。默认 timeline 提示词针对 **iOS 截图** 优化（过滤状态栏等系统噪音）。若你主要使用**录音**，可自行修改 `prompts/timeline_prompts.md`，或通过 `TIMELINE_PROMPT_FILE` 指定自己的文件；自定义操作提示词可通过 `CUSTOMIZED_PROMPT_FILE` 指定路径。详见 [用户手册 3.6 提示词](docs/USERGUIDE.md#36-提示词)。
+Timeline 支持 4 套场景化提示词（截图/录音 × 中文/英文），insights 与 summary 各支持中英文 2 套；通过 `TIMELINE_LANG_MODE` 与 `OUTPUT_LOCALE` 控制语言路由。默认 timeline 提示词针对 **iOS 截图** 优化（过滤状态栏等系统噪音）。若你主要使用**录音**，可自行修改 `prompts/timeline_prompts.md`，或通过 `TIMELINE_PROMPT_FILE` 指定自己的文件；自定义操作提示词可通过 `CUSTOMIZED_PROMPT_FILE` 指定路径。**OpenAI 兼容**：`OPENAI_*` 变量适用于 OpenAI 官方及 SiliconFlow、OpenRouter、DeepSeek 等兼容服务，接入第三方时改 `OPENAI_BASE_URL` 即可。详见 [用户手册 3.6 提示词](docs/USERGUIDE.md#36-提示词)。
 
 ### 下一步
 
@@ -134,11 +134,11 @@ Timeline 支持 4 套场景化提示词（截图/录音 × 中文/英文），in
 
 ### Introduction
 
-AuraCap is a pipeline from "instant capture" to "structured consolidation": you take screenshots or voice recordings with **iOS Shortcuts**, and AI extracts information, summarizes key points, and writes them into a timeline. Without changing your existing habits, it turns scattered information into searchable, reviewable knowledge assets.
+AuraCap is the first open-source project to implement **GitHub Release as Transient Middleware**: iOS Shortcuts upload screenshots or recordings to Release Assets; GitHub Actions then fetches, processes via AI, and writes to a timeline — fully closed-loop within GitHub's security boundary, no S3, no image hosting, no exposed webhooks. **Forking the repository is the entire deployment. Running cost: zero.**
 
 ### The Problem It Solves
 
-The issue with most information systems is not a lack of recording capacity, but that recording and organizing are split into two separate tasks: you don't have time to organize in the moment, and it's hard to return to the context later. AuraCap's goal is to reconnect these two tasks so that "capture" naturally leads to "consolidation".
+Most information tools split recording and organizing into two separate acts: you never have time to organize in the moment, and it's hard to return to the context later. Most "zero-cost" solutions quietly depend on third-party storage or lock your data into a platform. AuraCap resolves this with a touch of hacker ingenuity: GitHub's own infrastructure handles all the relay and processing, so "capture" naturally leads to "consolidation" — and you always own your data.
 
 ### Why Shortcuts as the Entry Point
 
@@ -226,7 +226,7 @@ AuraCap uses four prompt files under `prompts/` to drive AI analysis:
 | `summary_prompts.md` | Longitudinal analysis of timeline + insights over a period | Weekly (default Sunday UTC 02:00) |
 | `customized_prompts.md` | Extra AI processing on timeline extract results, output to `storage/customized/` | After each capture or on cron schedule (requires `ENABLE_CUSTOM_OPERATION`) |
 
-Timeline supports four scenario-specific prompts (screenshot/audio × Chinese/English); insights and summary each support two language variants. Language routing is controlled by `TIMELINE_LANG_MODE` and `OUTPUT_LOCALE`. The default timeline prompt is tuned for **iOS screenshots** (filtering status bar etc.). If you mainly use **voice recordings**, customize `prompts/timeline_prompts.md` or set `TIMELINE_PROMPT_FILE` to your own file; custom operation prompt path can be set via `CUSTOMIZED_PROMPT_FILE`. See [User Guide 3.6 Prompts](docs/USERGUIDE.md#36-prompts).
+Timeline supports four scenario-specific prompts (screenshot/audio × Chinese/English); insights and summary each support two language variants. Language routing is controlled by `TIMELINE_LANG_MODE` and `OUTPUT_LOCALE`. The default timeline prompt is tuned for **iOS screenshots** (filtering status bar etc.). If you mainly use **voice recordings**, customize `prompts/timeline_prompts.md` or set `TIMELINE_PROMPT_FILE` to your own file; custom operation prompt path can be set via `CUSTOMIZED_PROMPT_FILE`. **OpenAI compatible**: `OPENAI_*` variables apply to OpenAI official and SiliconFlow, OpenRouter, DeepSeek, etc.; for third-party, change `OPENAI_BASE_URL`. See [User Guide 3.6 Prompts](docs/USERGUIDE.md#36-prompts).
 
 ### Next Steps
 

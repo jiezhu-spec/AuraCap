@@ -30,6 +30,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `DEFAULT_TIMEZONE` | `local` |
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` |
 | `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` |
+| `UNIFIED_PROVIDER`（可选） | 统一模式：设为 `openai`、`google` 等时，TEXT/MM/ASR 均用同一 provider |
 
 说明：GitHub 不允许变量名以 `GITHUB_` 开头，故使用 `AURACAP_` 前缀。mock 模式无需配置 Secrets，即可完成端到端验证。
 
@@ -37,7 +38,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 **可选**：`TIMELINE_LANG_MODE`（默认 `request_locale`）可设为 `content_detect`，让 timeline 自动检测截图/录音内容语言选提示词；截图每次会多一次 VL 调用。
 
-若使用真实模型（OpenAI、Gemini、SiliconFlow 等），需额外配置 Variables 和 Secrets，详见 [USERGUIDE 配置说明](USERGUIDE.md#3-配置说明两条路径通用)。
+若使用真实模型（OpenAI、Gemini、SiliconFlow 等），需额外配置 Variables 和 Secrets，详见 [USERGUIDE 配置说明](USERGUIDE.md#3-配置说明两条路径通用)。使用 OpenAI 兼容第三方（SiliconFlow、OpenRouter、DeepSeek 等）时，用 `OPENAI_*` 变量（`OPENAI_BASE_URL`、`OPENAI_API_KEY` 等）；`OPENAI_*` 适用于所有 OpenAI API 兼容服务。
 
 **可选：调度配置**：`ENABLE_SCHEDULER`（默认 `true`）控制是否运行 insights/summary 定时任务；设为 `false` 可完全关闭。其余调度变量（`INSIGHTS_CRON`、`SUMMARY_CRON` 等）详见 [USERGUIDE 3.5 自动化调度](USERGUIDE.md#35-自动化调度)。
 
@@ -281,6 +282,7 @@ Go to `Settings -> Secrets and variables -> Actions`, click `Variables`, add:
 | `DEFAULT_TIMEZONE` | `local` |
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` |
 | `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` |
+| `UNIFIED_PROVIDER` (optional) | Unified mode: set to `openai`, `google`, etc. to use one provider for TEXT/MM/ASR |
 
 Note: GitHub disallows variable names starting with `GITHUB_`, so we use `AURACAP_` prefix. Mock mode needs no Secrets for end-to-end verification.
 
@@ -288,7 +290,7 @@ Note: GitHub disallows variable names starting with `GITHUB_`, so we use `AURACA
 
 **Optional**: `TIMELINE_LANG_MODE` (default `request_locale`) can be set to `content_detect` to auto-detect screenshot/audio content language; screenshots add 1 VL call per capture.
 
-For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. See [USERGUIDE configuration](USERGUIDE.md#3-configuration-both-modes).
+For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. See [USERGUIDE configuration](USERGUIDE.md#3-configuration-both-modes). For OpenAI-compatible third-party (SiliconFlow, OpenRouter, DeepSeek, etc.), use `OPENAI_*` variables (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, etc.); `OPENAI_*` applies to all OpenAI API compatible services.
 
 **Optional — Scheduler**: `ENABLE_SCHEDULER` (default `true`) controls whether insights/summary scheduled tasks run; set to `false` to fully disable. For other scheduler variables (`INSIGHTS_CRON`, `SUMMARY_CRON`, etc.), see [USERGUIDE 3.5 Scheduler](USERGUIDE.md#35-scheduler).
 
