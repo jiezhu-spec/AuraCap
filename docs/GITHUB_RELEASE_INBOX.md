@@ -58,6 +58,8 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ### 二、在 iPhone 上搭快捷指令
 
+> **快捷方式**：若不想从头手动配置，可 [下载已脱敏的快捷指令模板](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。
+
 ### 步骤 5：新建快捷指令并添加变量
 
 **只建一个快捷指令**（可命名为「AuraCap 截图」）。在这个快捷指令里，**重复 6 次**以下组合：
@@ -302,6 +304,8 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 ---
 
 ### Part II: Build Shortcut on iPhone
+
+> **Shortcut**: Prefer not to configure from scratch? [Download the pre-configured shortcut](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985) (personal info already masked). Import it, then fill in your GitHub username, token, `release_id`, etc.
 
 #### Step 5: New Shortcut and Variables
 

@@ -79,7 +79,7 @@ AuraCap 最终采取了一种些许"黑客精神"的方案：**利用 GitHub Rel
 1. Fork 本仓库
 2. 在仓库 `Settings -> Secrets and variables -> Actions` 中配置必要变量（可先使用 `mock` 跑通流程）
 3. 运行一次 `AuraCap Setup Release Inbox` 工作流
-4. 按用户手册在 iPhone 上搭好快捷指令
+4. 按用户手册在 iPhone 上搭好快捷指令（或 [下载已脱敏模板](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985)，仅填写个人信息即可）
 
 建议首次先使用 `mock` 模式完成端到端验证，再切换为 OpenAI、Gemini 等真实模型。详细步骤见 [用户手册](docs/USERGUIDE.md)。
 
@@ -174,7 +174,7 @@ Both can be used independently: the former emphasizes low maintenance and out-of
 1. Fork this repository
 2. Configure required variables under `Settings -> Secrets and variables -> Actions` (use `mock` first to verify the flow)
 3. Run the `AuraCap Setup Release Inbox` workflow once
-4. Set up the shortcut on your iPhone following the [user guide](docs/USERGUIDE.md)
+4. Set up the shortcut on your iPhone following the [user guide](docs/USERGUIDE.md) (or [download pre-configured template](https://www.icloud.com/shortcuts/4fe8f67fe232424d8df5e85f1877e985)—fill in your personal info only)
 
 Start with `mock` mode to complete an end-to-end run, then switch to OpenAI, Gemini, or other real models. See [docs/USERGUIDE.md](docs/USERGUIDE.md) for details.
 
