@@ -19,9 +19,11 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 **隐私提醒**：截图/录音会上传到 Release，可能含敏感信息。Fork 后默认是公开仓库，请务必在 `Settings -> General` 中将其设为 **Private**，否则任何人可访问你的 Release 文件。
 
-### 步骤 2：配置 Variables
+### 步骤 2：配置 Variables 与 Secrets
 
-进入 `Settings -> Secrets and variables -> Actions`，点 `Variables` 页签，添加：
+进入 `Settings -> Secrets and variables -> Actions`。
+
+**Variables（变量）**：点 `Variables` 页签，添加：
 
 | 变量名 | 值 | 用途 |
 |--------|-----|------|
@@ -31,16 +33,28 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `OUTPUT_LOCALE` | `zh-CN` | 输出语言（`zh-CN` 或 `en-US`；insights/summary 提示词、timeline 标题） |
 | `DEFAULT_TIMEZONE` | `local` | timeline 条目和 insights/summary 中时间戳的时区 |
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | 存放待处理截图/录音的 Release 的 tag 名称（与步骤 4 创建的 Release 对应） |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | 处理完成后是否从 Release 上删除已上传的截图/录音文件；`false` 时文件会保留并堆积 |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | 处理完成后是否从 Release 上删除已上传的截图/录音文件；`false` 时文件会保留并堆积。**不配置时默认 `true`，不影响运行** |
 | `UNIFIED_PROVIDER`（可选） | 留空 | 统一模式：设为 `openai`、`google` 等时，TEXT/MM/ASR 均用同一 provider；设后 TEXT_PROVIDER/MM_PROVIDER/ASR_PROVIDER 可省略 |
 
 **存储提醒**：`AURACAP_RELEASE_DELETE_AFTER_PROCESS=false` 时，文件会留在 Release 中累积。GitHub 仓库有大小限制（软限制约 1GB），超出后新上传会失败，建议保持 `true`。
 
 完整变量说明见 [USERGUIDE 3.7 变量参考速查表](USERGUIDE.md#37-变量参考速查表)。
 
-**必配与可选**：mock 模式下上述 Variables 均可不配（全用默认），无需 Secrets 即可完成端到端验证。使用真实模型时，必须配置对应 provider 的 Secret（如 `OPENAI_API_KEY`）以及 `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER`（或 `UNIFIED_PROVIDER`）为非 mock；缺 key 会导致 `AUTH_FAILED`。详见 [USERGUIDE 3.7 变量必配/可选与后果](USERGUIDE.md#37-变量参考速查表)。
+**Secrets（密钥）**：使用真实模型时，必须点 `Secrets` 页签添加 API Key。操作：`New repository secret` → 名称填下表对应项 → 值填你的 API Key（粘贴后不可再查看，请妥善保存）。
 
-说明：GitHub 禁止变量名以 `GITHUB_` 开头，故 Actions Variables 使用 `AURACAP_` 前缀（如 `AURACAP_RELEASE_INBOX_TAG`）；workflow 内部会映射为 `GITHUB_RELEASE_*` 传给处理脚本。mock 模式无需配置 Secrets，即可完成端到端验证。
+| Provider | Variables 中设置 | Secrets 中必填 |
+|----------|------------------|----------------|
+| OpenAI / SiliconFlow / OpenRouter / DeepSeek 等 | `TEXT_PROVIDER=openai`（或 `UNIFIED_PROVIDER=openai`） | `OPENAI_API_KEY` |
+| Gemini | `TEXT_PROVIDER=google`（或 `UNIFIED_PROVIDER=google`） | `GOOGLE_API_KEY` |
+| Groq | `TEXT_PROVIDER=groq`（或 `UNIFIED_PROVIDER=groq`） | `GROQ_API_KEY` |
+| Mistral | `TEXT_PROVIDER=mistral`（或 `UNIFIED_PROVIDER=mistral`） | `MISTRAL_API_KEY` |
+| Anthropic | `TEXT_PROVIDER=anthropic` | `ANTHROPIC_API_KEY` |
+
+缺 Secret 会导致 `AUTH_FAILED`，Workflow 运行失败。**Provider 值必须小写**（如 `openai`、`google`），写 `OPENAI` 会校验失败。mock 为测试模式，不调用真实 API，用于端到端验证；mock 模式无需 Secrets。
+
+**必配与可选**：mock 模式下上述 Variables 均可不配（全用默认）。使用真实模型时，必须配置对应 provider 的 Secret 以及 `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER`（或 `UNIFIED_PROVIDER`）为非 mock。详见 [USERGUIDE 3.7 变量必配/可选与后果](USERGUIDE.md#37-变量参考速查表)。
+
+说明：GitHub 禁止变量名以 `GITHUB_` 开头，故 Actions Variables 使用 `AURACAP_` 前缀（如 `AURACAP_RELEASE_INBOX_TAG`）；workflow 内部会映射为 `GITHUB_RELEASE_*` 传给处理脚本。
 
 `OUTPUT_LOCALE` 同时控制 insights/summary 的提示词语言，以及 timeline 在 `request_locale` 模式下的提示词选择。快捷指令中的 `AURACAP_LOCALE` 在每次请求时传入，同样决定 timeline 输出语言（当 `TIMELINE_LANG_MODE=request_locale` 时）。
 
@@ -48,7 +62,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 若使用真实模型（OpenAI、Gemini、SiliconFlow 等），需额外配置 Variables 和 Secrets，详见 [USERGUIDE 配置说明](USERGUIDE.md#3-配置说明两条路径通用)。使用 OpenAI 兼容第三方（SiliconFlow、OpenRouter、DeepSeek 等）时，用 `OPENAI_*` 变量（`OPENAI_BASE_URL`、`OPENAI_API_KEY` 等）；`OPENAI_*` 适用于所有 OpenAI API 兼容服务。
 
-**可选：调度配置**：`ENABLE_SCHEDULER`（默认 `true`）控制是否运行 insights/summary 定时任务；设为 `false` 可完全关闭。其余调度变量（`INSIGHTS_CRON`、`SUMMARY_CRON` 等）详见 [USERGUIDE 3.5 自动化调度](USERGUIDE.md#35-自动化调度)。
+**调度配置（每日洞察 + 定期摘要）**：AuraCap 默认会定时运行 insights（每日）和 summary（每周），将 timeline 提炼为「当日洞察」和「周期摘要」。`ENABLE_SCHEDULER`（默认 `true`）为总开关；设为 `false` 可完全关闭定时任务。`INSIGHTS_CRON`、`SUMMARY_CRON` 等可自定义执行时间；详见 [USERGUIDE 3.5 自动化调度](USERGUIDE.md#35-自动化调度)。
 
 ### 步骤 3：创建 Fine-grained Token
 
@@ -234,6 +248,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | 404 | owner / repo / release_id 错误 | 核对变量值与仓库、Release 是否一致 |
 | Action 未触发 | 参数缺失或错误 | 检查 Workflow ID 是否为 `ingest_dispatch.yml`，步骤 11 的词典是否包含 `asset_id`（上传后的文件 ID） |
 | 新上传失败 | 仓库大小超限 | GitHub 仓库有软限制约 1GB，Release 文件累积会占用空间；将 `AURACAP_RELEASE_DELETE_AFTER_PROCESS` 设为 `true` 或手动清理 Release 中的旧文件 |
+| `AUTH_FAILED` | 未配置 Secret 或 provider 值错误（如大小写） | 检查 Secrets 页签是否添加对应 API Key；`TEXT_PROVIDER`、`UNIFIED_PROVIDER` 等值必须小写（如 `openai`） |
 
 ---
 
@@ -282,9 +297,11 @@ Fork `AuraCap` to your GitHub account. All following steps are on your fork.
 
 **Privacy**: Screenshots/recordings are uploaded to Release and may contain sensitive data. Forks are public by default—set your repo to **Private** in `Settings -> General` or anyone can access your Release assets.
 
-#### Step 2: Configure Variables
+#### Step 2: Configure Variables and Secrets
 
-Go to `Settings -> Secrets and variables -> Actions`, click `Variables`, add:
+Go to `Settings -> Secrets and variables -> Actions`.
+
+**Variables**: Click `Variables`, add:
 
 | Variable | Value | Purpose |
 |----------|-------|---------|
@@ -294,16 +311,28 @@ Go to `Settings -> Secrets and variables -> Actions`, click `Variables`, add:
 | `OUTPUT_LOCALE` | `zh-CN` | Output language (`zh-CN` or `en-US`; insights/summary prompts, timeline titles) |
 | `DEFAULT_TIMEZONE` | `local` | Timezone for timestamps in timeline entries and insights/summary |
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | Tag name of the Release that holds pending screenshots/recordings (matches the Release created in Step 4) |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | After processing, delete the uploaded screenshot/audio file from the Release; `false` keeps files (they accumulate) |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | `true` | After processing, delete the uploaded screenshot/audio file from the Release; `false` keeps files (they accumulate). **Unset defaults to `true`; no impact on operation** |
 | `UNIFIED_PROVIDER` (optional) | leave empty | Unified mode: set to `openai`, `google`, etc. to use one provider for TEXT/MM/ASR; when set, TEXT_PROVIDER/MM_PROVIDER/ASR_PROVIDER can be omitted |
 
 **Storage**: When `AURACAP_RELEASE_DELETE_AFTER_PROCESS=false`, files accumulate in Release. GitHub repos have size limits (~1GB soft); new uploads will fail when exceeded. Keep `true` recommended.
 
 Full variable reference: [USERGUIDE 3.7 Variable Reference](USERGUIDE.md#37-variable-reference-quick-lookup).
 
-**Required vs optional**: In mock mode, all Variables can be left unset (defaults apply); no Secrets needed for end-to-end verification. For real models, configure the provider Secret (e.g. `OPENAI_API_KEY`) and set `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER` (or `UNIFIED_PROVIDER`) to non-mock; missing key causes `AUTH_FAILED`. See [USERGUIDE 3.7 Required vs Optional](USERGUIDE.md#37-variable-reference-quick-lookup).
+**Secrets**: For real models, click `Secrets` and add your API key. `New repository secret` → Name = key from table below → Value = your API key (cannot be viewed again after save).
 
-Note: GitHub disallows variable names starting with `GITHUB_`, so Actions Variables use `AURACAP_` prefix (e.g. `AURACAP_RELEASE_INBOX_TAG`); the workflow maps these to `GITHUB_RELEASE_*` for the processing script. Mock mode needs no Secrets for end-to-end verification.
+| Provider | Set in Variables | Required Secret |
+|----------|------------------|-----------------|
+| OpenAI / SiliconFlow / OpenRouter / DeepSeek etc. | `TEXT_PROVIDER=openai` (or `UNIFIED_PROVIDER=openai`) | `OPENAI_API_KEY` |
+| Gemini | `TEXT_PROVIDER=google` (or `UNIFIED_PROVIDER=google`) | `GOOGLE_API_KEY` |
+| Groq | `TEXT_PROVIDER=groq` (or `UNIFIED_PROVIDER=groq`) | `GROQ_API_KEY` |
+| Mistral | `TEXT_PROVIDER=mistral` (or `UNIFIED_PROVIDER=mistral`) | `MISTRAL_API_KEY` |
+| Anthropic | `TEXT_PROVIDER=anthropic` | `ANTHROPIC_API_KEY` |
+
+Missing Secret causes `AUTH_FAILED` and workflow failure. **Provider values must be lowercase** (e.g. `openai`, `google`); `OPENAI` will fail validation. Mock is a test mode that skips real API calls for end-to-end verification; mock mode needs no Secrets.
+
+**Required vs optional**: In mock mode, all Variables can be left unset. For real models, configure the provider Secret and set `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER` (or `UNIFIED_PROVIDER`) to non-mock. See [USERGUIDE 3.7 Required vs Optional](USERGUIDE.md#37-variable-reference-quick-lookup).
+
+Note: GitHub disallows variable names starting with `GITHUB_`, so Actions Variables use `AURACAP_` prefix (e.g. `AURACAP_RELEASE_INBOX_TAG`); the workflow maps these to `GITHUB_RELEASE_*` for the processing script.
 
 `OUTPUT_LOCALE` controls insights/summary prompt language and timeline prompt selection in `request_locale` mode. The shortcut variable `AURACAP_LOCALE` is sent per request and likewise determines timeline output language when `TIMELINE_LANG_MODE=request_locale`.
 
@@ -311,7 +340,7 @@ Note: GitHub disallows variable names starting with `GITHUB_`, so Actions Variab
 
 For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. See [USERGUIDE configuration](USERGUIDE.md#3-configuration-both-modes). For OpenAI-compatible third-party (SiliconFlow, OpenRouter, DeepSeek, etc.), use `OPENAI_*` variables (`OPENAI_BASE_URL`, `OPENAI_API_KEY`, etc.); `OPENAI_*` applies to all OpenAI API compatible services.
 
-**Optional — Scheduler**: `ENABLE_SCHEDULER` (default `true`) controls whether insights/summary scheduled tasks run; set to `false` to fully disable. For other scheduler variables (`INSIGHTS_CRON`, `SUMMARY_CRON`, etc.), see [USERGUIDE 3.5 Scheduler](USERGUIDE.md#35-scheduler).
+**Scheduler (daily insights + periodic summary)**: AuraCap runs insights (daily) and summary (weekly) by default, turning timeline into "当日洞察" and "周期摘要". `ENABLE_SCHEDULER` (default `true`) is the master switch; set to `false` to fully disable. `INSIGHTS_CRON`, `SUMMARY_CRON`, etc. control execution time; see [USERGUIDE 3.5 Scheduler](USERGUIDE.md#35-scheduler).
 
 #### Step 3: Create Fine-grained Token
 
@@ -463,6 +492,7 @@ Run the shortcut on iPhone. It screenshots, uploads, and triggers the workflow.
 | 404 | owner / repo / release_id wrong | Verify variable values |
 | Action not triggered | Parameter error | Check Workflow ID = `ingest_dispatch.yml`, Dictionary from Step 11 has `asset_id` (uploaded file ID) |
 | New upload fails | Repo size exceeded | GitHub repos have ~1GB soft limit; Release files count. Set `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true` or manually delete old Release assets |
+| `AUTH_FAILED` | Secret not configured or provider value wrong (e.g. case) | Add API key in Secrets; use lowercase for provider values (e.g. `openai`) |
 
 ---
 

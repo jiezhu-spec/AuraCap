@@ -131,7 +131,7 @@ python scripts/build_shortcuts.py
 | `MM_PROVIDER` | 多模态模型（图/音） | 截图分析、录音直接分析（`DIRECT_MULTIMODAL` 模式） |
 | `ASR_PROVIDER` | 语音转文字模型 | 录音转写（仅 `TRANSCRIBE_THEN_ANALYZE` 模式；`DIRECT_MULTIMODAL` 下可忽略） |
 
-推荐先统一三个 provider 为同一供应商，跑通后再混搭。
+推荐先统一三个 provider 为同一供应商，跑通后再混搭。**Provider 值（openai、google 等）必须小写，否则校验失败**。
 
 **OPENAI 变量说明**：`OPENAI_*` 适用于 OpenAI 官方 API 及所有 **OpenAI API 兼容** 的第三方服务（SiliconFlow、OpenRouter、DeepSeek、通义等）。接入第三方时只需改 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY`，模型名按对应服务商文档。
 
@@ -221,7 +221,24 @@ config 支持 Anthropic、Groq、Mistral，变量命名见 `.env.example`（如 
 - **时区**：GitHub Actions 中 cron 以 **UTC** 执行；自部署时由系统时区决定
 - **weekday 约定**：使用标准 cron（0=周日，6=周六，7 为周日的别名）
 - **Docker 场景**：`ENABLE_SCHEDULER=false` 时容器仍运行，但脚本立即退出；需完全停止可 `docker compose stop scheduler`
-- **示例**：每周一洞察 `0 8 * * 1`；每两周摘要 `0 2 * * 0` 并设 `SUMMARY_WINDOW_DAYS=14`
+
+**UTC 时间对照表**（cron 格式：分 时 日 月 周；GitHub Actions 使用 UTC）：
+
+| 期望执行时间 | cron 表达式 | 说明 |
+|-------------|-------------|------|
+| 北京时间 09:00（每日） | `0 1 * * *` | 01:00 UTC |
+| 北京时间 04:00（每日） | `0 20 * * *` | 20:00 UTC（前一天） |
+| 北京时间 10:00（每日） | `0 2 * * *` | 02:00 UTC |
+| 北京时间 16:00（每日） | `0 8 * * *` | 08:00 UTC |
+| 北京时间 00:00（每日，次日） | `0 16 * * *` | 16:00 UTC |
+| 北京时间 10:00（每周日） | `0 2 * * 0` | 周日 02:00 UTC |
+| 北京时间 16:00（每周一） | `0 8 * * 1` | 周一 08:00 UTC |
+| 美东 09:00（每日） | `0 14 * * *` | 14:00 UTC（冬令时 13:00） |
+| 美西 09:00（每日） | `0 17 * * *` | 17:00 UTC（冬令时 16:00） |
+
+换算：北京时间 = UTC + 8；美东冬令时 = UTC + 5；美西冬令时 = UTC + 8。
+
+`SUMMARY_WINDOW_DAYS` 可取任意正整数（如 30），窗口越大 token 消耗越大。
 
 ### 3.6 提示词
 
@@ -327,7 +344,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 | `INSIGHTS_CRON` | 洞察执行时间（cron） | cron 表达式 | `0 1 * * *` |
 | `INSIGHTS_TARGET_DAY_OFFSET` | 洞察目标日：0=当天，1=前一天 | `0`、`1` 等 | `1` |
 | `SUMMARY_CRON` | 摘要执行时间（cron） | cron 表达式 | `0 2 * * 0` |
-| `SUMMARY_WINDOW_DAYS` | 摘要覆盖天数 | 正整数 | `7` |
+| `SUMMARY_WINDOW_DAYS` | 摘要覆盖天数；可取任意正整数（如 30），窗口越大 token 消耗越大 | 正整数 | `7` |
 | `CUSTOM_OPERATION_MODE` | 自定义操作触发方式 | `ON_EACH_TRIGGER`、`CRON` | `ON_EACH_TRIGGER` |
 | `CUSTOM_OPERATION_CRON` | 自定义操作 cron（仅 CRON 模式） | cron 表达式 | `0 */6 * * *` |
 | **输入限制** | | | |
@@ -346,12 +363,12 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 | `SKIP_SIGNATURE_VERIFICATION` | 是否跳过签名校验 | `true`、`false` | `true` |
 | **GitHub-only** | | | |
 | `AURACAP_RELEASE_INBOX_TAG` | 存放待处理截图/录音的 Release 的 tag 名称 | 任意字符串 | `auracap-inbox` |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | 处理完成后是否从 Release 上删除已上传的截图/录音文件；`false` 时文件会保留并堆积。GitHub 仓库有大小限制（软限制约 1GB），超出后新上传会失败，建议保持 `true` | `true`、`false` | `true` |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | 处理完成后是否从 Release 上删除已上传的截图/录音文件；`false` 时文件会保留并堆积。GitHub 仓库有大小限制（软限制约 1GB），超出后新上传会失败，建议保持 `true`。不配置时默认 `true`，不影响运行 | `true`、`false` | `true` |
 
 ### 4. 存储输出
 - `storage/timeline.md`：按时间顺序的原始记录
-- `storage/insights/`：每日洞察
-- `storage/summary/`：定期摘要
+- `storage/insights/`：每日洞察；文件命名 `YYYY-MM-DD.md`（分析目标日期）
+- `storage/summary/`：定期摘要；文件命名 `{start_day}_{end_day}.md`（如 `2025-02-18_2025-02-24.md`），覆盖天数由 `SUMMARY_WINDOW_DAYS` 决定
 - `storage/customized/`：自定义操作（Custom Operation）的输出
 
 存储路径可通过 `STORAGE_ROOT`、`TIMELINE_FILE`、`INSIGHTS_DIR`、`SUMMARY_DIR`、`CUSTOMIZED_DIR` 自定义。
@@ -370,7 +387,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 
 ### 5. 排障清单
 1. `PAYLOAD_TOO_LARGE`：改用 `/v1/capture/raw` 或 `/v1/capture/upload`
-2. `AUTH_FAILED`：检查 provider 与对应 key
+2. `AUTH_FAILED`：检查 provider 与对应 key；**Provider 值必须小写**；**GitHub-only 需在 Secrets 页签添加 API Key**
 3. 自部署没写入：检查后端进程和 `storage/` 权限
 4. GitHub-only 没写入：检查 Actions 权限、快捷指令触发的 Workflow 是否成功启动、步骤 11 传入的 `asset_id`（上传后的文件 ID）是否正确
 5. GitHub-only 新上传失败：可能是仓库大小超限（GitHub 软限制约 1GB）；将 `AURACAP_RELEASE_DELETE_AFTER_PROCESS` 设为 `true` 或手动清理 Release 中的旧文件
@@ -486,7 +503,7 @@ Use `/raw` or `/upload` when hitting `PAYLOAD_TOO_LARGE`.
 | `MM_PROVIDER` | Multimodal model (image/audio) | Screenshot analysis, direct audio analysis (when `DIRECT_MULTIMODAL`) |
 | `ASR_PROVIDER` | Speech-to-text model | Audio transcription (only when `TRANSCRIBE_THEN_ANALYZE`; can ignore when `DIRECT_MULTIMODAL`) |
 
-Use the same provider for all three initially; mix after it works.
+Use the same provider for all three initially; mix after it works. **Provider values (openai, google, etc.) must be lowercase; otherwise validation fails**.
 
 **OPENAI variables**: `OPENAI_*` applies to OpenAI official API and all **OpenAI API compatible** third-party services (SiliconFlow, OpenRouter, DeepSeek, etc.). For third-party: change `OPENAI_BASE_URL` and `OPENAI_API_KEY`; model names per provider docs.
 
@@ -576,7 +593,24 @@ Default `TRANSCRIBE_THEN_ANALYZE` recommended; `DIRECT_MULTIMODAL` requires audi
 - **Timezone**: Cron runs in **UTC** on GitHub Actions; self-host uses system timezone
 - **Weekday convention**: Standard cron (0=Sunday, 6=Saturday, 7=Sunday alias)
 - **Docker**: When `ENABLE_SCHEDULER=false`, container still runs but script exits immediately; use `docker compose stop scheduler` to fully stop
-- **Examples**: Weekly Monday insights `0 8 * * 1`; bi-weekly summary `0 2 * * 0` with `SUMMARY_WINDOW_DAYS=14`
+
+**UTC time reference** (cron format: min hour day month weekday; GitHub Actions uses UTC):
+
+| Desired run time | Cron expression | Note |
+|------------------|-----------------|------|
+| Beijing 09:00 daily | `0 1 * * *` | 01:00 UTC |
+| Beijing 04:00 daily | `0 20 * * *` | 20:00 UTC (previous day) |
+| Beijing 10:00 daily | `0 2 * * *` | 02:00 UTC |
+| Beijing 16:00 daily | `0 8 * * *` | 08:00 UTC |
+| Beijing 00:00 daily (next day) | `0 16 * * *` | 16:00 UTC |
+| Beijing 10:00 every Sunday | `0 2 * * 0` | Sunday 02:00 UTC |
+| Beijing 16:00 every Monday | `0 8 * * 1` | Monday 08:00 UTC |
+| US Eastern 09:00 daily | `0 14 * * *` | 14:00 UTC (13:00 in winter) |
+| US Pacific 09:00 daily | `0 17 * * *` | 17:00 UTC (16:00 in winter) |
+
+Conversion: Beijing = UTC+8; US Eastern (winter) = UTC+5; US Pacific (winter) = UTC+8.
+
+`SUMMARY_WINDOW_DAYS` accepts any positive integer (e.g. 30); larger windows increase token usage.
 
 ### 3.6 Prompts
 
@@ -682,7 +716,7 @@ Common variables and their purposes. Full list in `.env.example`.
 | `INSIGHTS_CRON` | Insights run time (cron) | cron expression | `0 1 * * *` |
 | `INSIGHTS_TARGET_DAY_OFFSET` | Insights target day: 0=today, 1=yesterday | `0`, `1`, etc. | `1` |
 | `SUMMARY_CRON` | Summary run time (cron) | cron expression | `0 2 * * 0` |
-| `SUMMARY_WINDOW_DAYS` | Summary window in days | positive integer | `7` |
+| `SUMMARY_WINDOW_DAYS` | Summary window in days; any positive integer (e.g. 30); larger windows increase token usage | positive integer | `7` |
 | `CUSTOM_OPERATION_MODE` | Custom op trigger mode | `ON_EACH_TRIGGER`, `CRON` | `ON_EACH_TRIGGER` |
 | `CUSTOM_OPERATION_CRON` | Custom op cron (CRON mode only) | cron expression | `0 */6 * * *` |
 | **Input limits** | | | |
@@ -701,12 +735,12 @@ Common variables and their purposes. Full list in `.env.example`.
 | `SKIP_SIGNATURE_VERIFICATION` | Skip signature verification | `true`, `false` | `true` |
 | **GitHub-only** | | | |
 | `AURACAP_RELEASE_INBOX_TAG` | Tag name of the Release that holds pending screenshots/recordings | any string | `auracap-inbox` |
-| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | After processing, delete uploaded screenshot/audio from Release; `false` keeps files (they accumulate). GitHub repos have ~1GB soft limit; exceeding causes new uploads to fail. Keep `true` recommended | `true`, `false` | `true` |
+| `AURACAP_RELEASE_DELETE_AFTER_PROCESS` | After processing, delete uploaded screenshot/audio from Release; `false` keeps files (they accumulate). GitHub repos have ~1GB soft limit; exceeding causes new uploads to fail. Keep `true` recommended. Unset defaults to `true`; no impact on operation | `true`, `false` | `true` |
 
 ### 4. Storage Output
 - `storage/timeline.md`: raw time-ordered entries
-- `storage/insights/`: daily insights
-- `storage/summary/`: periodic summaries
+- `storage/insights/`: daily insights; file naming `YYYY-MM-DD.md` (target day analyzed)
+- `storage/summary/`: periodic summaries; file naming `{start_day}_{end_day}.md` (e.g. `2025-02-18_2025-02-24.md`), window set by `SUMMARY_WINDOW_DAYS`
 - `storage/customized/`: custom operation output
 
 Paths configurable via `STORAGE_ROOT`, `TIMELINE_FILE`, `INSIGHTS_DIR`, `SUMMARY_DIR`, `CUSTOMIZED_DIR`.
@@ -725,7 +759,7 @@ Default `SKIP_SIGNATURE_VERIFICATION=true`, no request signature check. To enabl
 
 ### 5. Troubleshooting
 1. `PAYLOAD_TOO_LARGE`: use `/v1/capture/raw` or `/v1/capture/upload`
-2. `AUTH_FAILED`: check provider and API key
+2. `AUTH_FAILED`: check provider and API key; **provider values must be lowercase**; **GitHub-only: add API key in Secrets**
 3. Self-host no write: check backend process and `storage/` permissions
 4. GitHub-only no write: check Actions permissions, shortcut-triggered Workflow starts successfully, `asset_id` (uploaded file ID) passed in Step 11 is correct
 5. GitHub-only new upload fails: repo size may be exceeded (GitHub ~1GB soft limit); set `AURACAP_RELEASE_DELETE_AFTER_PROCESS=true` or manually delete old Release assets
