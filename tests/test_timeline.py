@@ -32,3 +32,5 @@ def test_append_and_list_timeline(tmp_path: Path) -> None:
     items = list_timeline_entries(timeline_file)
     assert len(items) == 1
     assert items[0]["extracted_content"] == "hello"
+    assert "id" in items[0]
+    assert items[0]["id"] and items[0]["id"].startswith("entry-")

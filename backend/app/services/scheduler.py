@@ -12,6 +12,8 @@ from backend.app.providers.factory import ProviderBundle
 from backend.app.services.custom_operation import run_custom_operation
 from backend.app.services.insights import run_daily_insights
 from backend.app.services.summary import run_periodic_summary
+from backend.app.services.tagging import run_daily_tagging
+from backend.app.services.task_index import run_daily_task_index, run_weekly_task_index
 from backend.app.services.sync_queue import enqueue as sync_enqueue, flush_pending
 from backend.app.services.timeline import entries_by_day
 
@@ -116,10 +118,21 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
     state = _load_state(state_path)
 
     providers = ProviderBundle(settings)
-    results: dict[str, str | None] = {"insight": None, "summary": None, "custom": None}
+    results: dict[str, str | None] = {
+        "insight": None,
+        "summary": None,
+        "custom": None,
+        "task_index_daily": None,
+        "task_index_weekly": None,
+    }
 
     insights_target_day = (now - timedelta(days=settings.insights_target_day_offset)).date()
-    if not settings.extract_only and settings.enable_insights and _should_run(settings.insights_cron, state.get("insights_last"), now):
+    run_insight = (
+        not settings.extract_only
+        and settings.enable_insights
+        and (settings.force_scheduled_tasks or _should_run(settings.insights_cron, state.get("insights_last"), now))
+    )
+    if run_insight:
         results["insight"] = await run_daily_insights(
             settings=settings,
             provider=providers.text,
@@ -132,7 +145,31 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
                 results["insight"], "insight", insights_target_day.isoformat(), settings
             )
 
-    if not settings.extract_only and settings.enable_summary and _should_run(settings.summary_cron, state.get("summary_last"), now):
+    run_task_index_daily = (
+        not settings.extract_only
+        and settings.enable_task_index
+        and (settings.force_scheduled_tasks or _should_run(settings.insights_cron, state.get("task_index_daily_last"), now))
+    )
+    if run_task_index_daily:
+        await run_daily_tagging(
+            settings=settings,
+            provider=providers.text,
+            target_day=insights_target_day,
+            timezone_name=settings.default_timezone,
+        )
+        results["task_index_daily"] = run_daily_task_index(
+            settings=settings,
+            target_day=insights_target_day,
+            timezone_name=settings.default_timezone,
+        )
+        state["task_index_daily_last"] = now.isoformat()
+
+    run_summary = (
+        not settings.extract_only
+        and settings.enable_summary
+        and (settings.force_scheduled_tasks or _should_run(settings.summary_cron, state.get("summary_last"), now))
+    )
+    if run_summary:
         results["summary"] = await run_periodic_summary(
             settings=settings,
             provider=providers.text,
@@ -146,8 +183,24 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
                 results["summary"], "summary", out_path.stem.replace("_", " ~ "), settings
             )
 
+    run_task_index_weekly = (
+        not settings.extract_only
+        and settings.enable_task_index
+        and (settings.force_scheduled_tasks or _should_run(settings.summary_cron, state.get("task_index_weekly_last"), now))
+    )
+    if run_task_index_weekly:
+        results["task_index_weekly"] = run_weekly_task_index(
+            settings=settings,
+            now_day=now.date(),
+            timezone_name=settings.default_timezone,
+        )
+        state["task_index_weekly_last"] = now.isoformat()
+
     if settings.enable_custom_operation and settings.custom_operation_mode == "CRON":
-        if _should_run(settings.custom_operation_cron, state.get("custom_last"), now):
+        run_custom = settings.force_scheduled_tasks or _should_run(
+            settings.custom_operation_cron, state.get("custom_last"), now
+        )
+        if run_custom:
             day_entries = entries_by_day(settings.timeline_file, insights_target_day, settings.default_timezone)
             input_text = "\n".join(item["extracted_content"] for item in day_entries)
             if input_text.strip():
@@ -164,7 +217,10 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
             state["custom_last"] = now.isoformat()
 
     if settings.sync_enable and settings.sync_default_frequency in ("DAILY", "CRON"):
-        if _should_run(settings.sync_default_cron, state.get("sync_last"), now):
+        run_sync = settings.force_scheduled_tasks or _should_run(
+            settings.sync_default_cron, state.get("sync_last"), now
+        )
+        if run_sync:
             await flush_pending(settings)
             state["sync_last"] = now.isoformat()
 

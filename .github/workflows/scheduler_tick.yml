@@ -23,8 +23,11 @@ jobs:
       TIMESTAMP_FORMAT: ${{ vars.TIMESTAMP_FORMAT || '%Y-%m-%d %H:%M:%S %Z' }}
 
       EXTRACT_ONLY: ${{ vars.EXTRACT_ONLY || 'false' }}
+      FORCE_SCHEDULED_TASKS: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
       ENABLE_INSIGHTS: ${{ vars.ENABLE_INSIGHTS || 'true' }}
       ENABLE_SUMMARY: ${{ vars.ENABLE_SUMMARY || 'true' }}
+      ENABLE_TASK_INDEX: ${{ vars.ENABLE_TASK_INDEX || 'true' }}
+      TASK_INDEX_TOP_N: ${{ vars.TASK_INDEX_TOP_N || '3' }}
       ENABLE_CUSTOM_OPERATION: ${{ vars.ENABLE_CUSTOM_OPERATION || 'false' }}
       AUDIO_MODE: ${{ vars.AUDIO_MODE || 'TRANSCRIBE_THEN_ANALYZE' }}
 

@@ -211,6 +211,7 @@ config 支持 Anthropic、Groq、Mistral，变量命名见 `.env.example`（如 
 - **ENABLE_SCHEDULER**：scheduler 总开关（默认 `true`）；为 `false` 时 GitHub Actions scheduler job 不运行、自部署脚本 early return；**不影响** HTTP 手动触发端点 `/v1/tasks/run-scheduled`
 - **ENABLE_INSIGHTS**：是否启用每日洞察（默认 `true`）
 - **ENABLE_SUMMARY**：是否启用定期摘要（默认 `true`）
+- **ENABLE_TASK_INDEX**：是否启用任务索引（tag + 按 tag 权重的索引，默认 `true`）
 - **ENABLE_CUSTOM_OPERATION**：是否启用自定义操作（默认 `false`），见下方
 
 **自定义操作**：对 timeline 提取结果做额外 AI 处理，输出到 `storage/customized/`。需配置 `prompts/customized_prompts.md`（或 `CUSTOMIZED_PROMPT_FILE`）。`CUSTOM_OPERATION_MODE`：`ON_EACH_TRIGGER`=每次捕捉后立即执行；`CRON`=按 `CUSTOM_OPERATION_CRON` 定时执行（默认每 6 小时）。使用步骤见 [3.6 提示词](#36-提示词)。
@@ -250,13 +251,14 @@ config 支持 Anthropic、Groq、Mistral，变量命名见 `.env.example`（如 
 
 ### 3.6 提示词
 
-AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提取、每日洞察、定期摘要与自定义操作。你可以直接编辑这些文件，或通过环境变量指定自己的路径。
+AuraCap 的五类提示词位于 `prompts/` 目录，分别驱动 timeline 提取、每日洞察、定期摘要、任务索引 tag 与自定义操作。你可以直接编辑这些文件，或通过环境变量指定自己的路径。
 
 | 文件 | 作用 | 触发时机 | 模型 |
 |------|------|----------|------|
 | `timeline_prompts.md` | 从截图或录音中提取用户想记录的核心信息，写入 `storage/timeline.md` | 每次快捷指令完成截图/录音并上传时 | 多模态（截图）/ 文本或多模态（录音） |
 | `insights_prompts.md` | 通读当日所有 timeline 条目，发现跨条目的模式、隐含意图、未完成信号 | 每日定时（见下方变量） | 文本 |
 | `summary_prompts.md` | 纵向分析一段时间内的 timeline + insights，归纳持续关注的主题、进展与停滞、建议方向 | 每周定时（见下方变量） | 文本 |
+| `tagging_zh.md` / `tagging_en.md` | 为 timeline 条目生成 1–3 个语义 tag，供任务索引使用 | 每日定时（与 insights 同 cron） | 文本 |
 | `customized_prompts.md` | 对 timeline 提取结果做额外 AI 处理，输出到 `storage/customized/` | 由 `CUSTOM_OPERATION_MODE` 决定：每次捕捉后或按 cron 定时 | 文本 |
 
 **触发变量**（自部署写在 `.env`，GitHub-only 写在 `Settings -> Secrets and variables -> Actions` 的 Variables 中）：
@@ -271,13 +273,17 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 | summary | `ENABLE_SUMMARY` | 是否启用定期摘要 | `true` |
 | | `SUMMARY_CRON` | cron 表达式，定义执行时间 | `0 2 * * 0`（每周日 UTC 02:00） |
 | | `SUMMARY_WINDOW_DAYS` | 摘要覆盖的天数 | `7` |
+| tagging | `ENABLE_TASK_INDEX` | 是否启用任务索引（含 tag 生成与索引） | `true` |
+| | `INSIGHTS_CRON` | 日级 tag + 索引与 insights 共用此 cron | `0 1 * * *` |
+| | `SUMMARY_CRON` | 周级索引与 summary 共用此 cron | `0 2 * * 0` |
+| | `TASK_INDEX_TOP_N` | 索引中展示的 top tag 数量 | `3` |
 | customized | `ENABLE_CUSTOM_OPERATION` | 是否启用自定义操作 | `false` |
 | | `CUSTOM_OPERATION_MODE` | 执行模式：`ON_EACH_TRIGGER`=每次捕捉后；`CRON`=定时 | `ON_EACH_TRIGGER` |
 | | `CUSTOM_OPERATION_CRON` | cron 表达式（仅 `CRON` 模式生效；该模式下需 `ENABLE_SCHEDULER=true`） | `0 */6 * * *`（每 6 小时） |
 
 上述变量中，insights/summary 需在 `ENABLE_SCHEDULER=true` 且对应 `ENABLE_*` 为 `true` 时生效；customized 的 `ON_EACH_TRIGGER` 模式不依赖 scheduler，`CRON` 模式则需 scheduler 运行。cron 格式与更多示例见 [3.5 自动化调度](#35-自动化调度)。
 
-**自定义路径**：在 `.env` 或 GitHub Actions Variables 中设置 `TIMELINE_PROMPT_FILE`、`INSIGHTS_PROMPT_FILE`、`SUMMARY_PROMPT_FILE`、`CUSTOMIZED_PROMPT_FILE`，指向你自己的 Markdown 文件。
+**自定义路径**：在 `.env` 或 GitHub Actions Variables 中设置 `TIMELINE_PROMPT_FILE`、`INSIGHTS_PROMPT_FILE`、`SUMMARY_PROMPT_FILE`、`TAGGING_PROMPT_FILE`、`CUSTOMIZED_PROMPT_FILE`，指向你自己的 Markdown 文件。
 
 **提示词语言路由**：AuraCap 支持按语言选择提示词，实现中英文输出。
 
@@ -285,6 +291,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
   - `request_locale`（默认）：按 `locale` 选提示词——快捷指令中为 `AURACAP_LOCALE`，GitHub dispatch 中为 `OUTPUT_LOCALE`；想切换输出语言只需修改该变量，零额外 API 调用
   - `content_detect`：自动检测内容语言（截图每次多一次多模态模型调用；录音对 transcript 做启发式检测，无额外调用）；检测失败时自动回退到 `request_locale`
 - **Insights / Summary**：支持 2 套提示词（`insights_zh.md`、`insights_en.md`、`summary_zh.md`、`summary_en.md`），始终跟随 `OUTPUT_LOCALE`，无需额外变量
+- **Tagging**：支持 `tagging_zh.md`、`tagging_en.md`，跟随 `OUTPUT_LOCALE`
 - 非 zh/en 语言兜底为 `en`；新文件不存在时自动回退到原有单文件（如 `timeline_prompts.md`），零迁移成本
 
 **使用自定义提示词**：1. 编辑 `prompts/customized_prompts.md`（或通过 `CUSTOMIZED_PROMPT_FILE` 指定其他路径）；2. 在 `.env` 中设置 `ENABLE_CUSTOM_OPERATION=true`；3. 可选：设置 `CUSTOM_OPERATION_MODE`（`ON_EACH_TRIGGER` 或 `CRON`）及 `CUSTOM_OPERATION_CRON`。输出至 `storage/customized/`。
@@ -296,6 +303,43 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 
 **按侧重调整提示词**：若你的记录以工作、生活或学习某一类为主，可主动编辑提示词以强调对应侧重。例如：以**工作**为主时，侧重会议、deadline、决策、行动项；以**学习**为主时，侧重概念、记忆点、待复习；以**生活**为主时，侧重体验、偏好、待办。直接编辑 `prompts/` 下的对应文件，或通过 `TIMELINE_PROMPT_FILE`、`INSIGHTS_PROMPT_FILE`、`SUMMARY_PROMPT_FILE` 指定自己的路径；无需额外配置，按需逐步微调即可。
 
+#### 3.6.1 任务索引
+
+任务索引对 timeline 条目做语义 tag 标注（如 work、health、learning），并按 tag 权重生成日/周索引，便于快速发现「工作」「学习」「健康」等主题的分布。
+
+**执行时机**：日级 tag 生成与索引与 insights 同 cron（默认 UTC 01:00）；周级索引与 summary 同 cron（默认周日 UTC 02:00）。
+
+**输出结构**：`storage/task_index/daily/{date}.md` 与 `.json`；`storage/task_index/weekly/{start}_{end}.md` 与 `.json`；`storage/entry_tags.json` 存储 `{ "entry-xxx": ["work", "meeting"], ... }`。
+
+**变量一览**（小白版）：
+
+| 变量 | 含义（小白版） | 示例值 | 何时需要改 |
+|------|----------------|--------|------------|
+| `ENABLE_TASK_INDEX` | 是否开启任务索引 | `true` / `false` | 想关闭时填 `false` |
+| `TASK_INDEX_TOP_N` | 索引里最多显示几个 tag（如 work、health） | `3`、`5`、`10` | 想多看几个主题时改大 |
+| `TASK_INDEX_DIR` | 索引文件放在哪个文件夹 | `storage/task_index` | 一般不用改 |
+| `ENTRY_TAGS_FILE` | tag 数据存在哪个文件 | `storage/entry_tags.json` | 一般不用改 |
+| `TAGGING_PROMPT_FILE` | 自定义 tag 提示词文件路径 | `prompts/tagging_prompts.md` | 想用自己写的提示词时填 |
+
+**开箱即用**：用户只需保证 `TEXT_PROVIDER` 已配置（insights/summary 能跑），任务索引默认就会跑，**无需额外配置**。若想显式写出，可复制：
+
+```env
+# 任务索引（默认开启，无需改）
+ENABLE_TASK_INDEX=true
+TASK_INDEX_TOP_N=3
+```
+
+**常见场景**：
+
+| 场景 | 操作 | 配置示例 |
+|------|------|----------|
+| 关闭任务索引 | 不想生成 tag 和索引 | `ENABLE_TASK_INDEX=false` |
+| 索引显示 5 个 tag | 想看更多主题 | `TASK_INDEX_TOP_N=5` |
+| 自定义 tag 词表 | 编辑提示词，增加「运动」「读书」等 | 编辑 `prompts/tagging_zh.md`，或设 `TAGGING_PROMPT_FILE=prompts/my_tagging.md` |
+| 改输出路径 | 索引写到别的目录 | `TASK_INDEX_DIR=my_index`、`ENTRY_TAGS_FILE=my_tags.json` |
+
+**自定义 tag 词表**：编辑 `prompts/tagging_zh.md` 或 `tagging_en.md`（或通过 `TAGGING_PROMPT_FILE` 指定路径），可调整优先词表（work、health、finance、learning、social、life、other）。
+
 ### 3.7 变量参考速查表
 
 以下为常用变量用途速查，完整列表见 `.env.example`。
@@ -304,7 +348,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 
 **GitHub-only Actions Variables**：mock 模式下上述 Variables 均可不配（全用默认），无需 Secrets 即可完成端到端验证。使用真实模型时，必须配置对应 provider 的 Secret（如 `OPENAI_API_KEY`）以及 `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER`（或 `UNIFIED_PROVIDER`）为非 mock；缺 key 会导致 `AUTH_FAILED`。
 
-**功能开关**：`EXTRACT_ONLY=true` 时仅做 timeline 提取，跳过 insights/summary；`ENABLE_SCHEDULER=false` 时定时任务不跑，但 `/v1/tasks/run-scheduled` 仍可手动触发；`ENABLE_INSIGHTS`/`ENABLE_SUMMARY=false` 时关闭对应功能；`SYNC_ENABLE=true` 时需配置对应渠道 webhook/token。
+**功能开关**：`EXTRACT_ONLY=true` 时仅做 timeline 提取，跳过 insights/summary；`ENABLE_SCHEDULER=false` 时定时任务不跑，但 `/v1/tasks/run-scheduled` 仍可手动触发；`ENABLE_INSIGHTS`/`ENABLE_SUMMARY=false` 时关闭对应功能；`ENABLE_TASK_INDEX=false` 时关闭任务索引；`SYNC_ENABLE=true` 时需配置对应渠道 webhook/token。若 task_index 目录为空，可检查 `ENABLE_TASK_INDEX` 与 `TEXT_PROVIDER`（tagging 使用文本模型）。
 
 #### 快捷指令变量（GitHub-only）
 
@@ -331,6 +375,8 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 | `INSIGHTS_DIR` | 每日洞察输出目录 | — | `storage/insights` |
 | `SUMMARY_DIR` | 定期摘要输出目录 | — | `storage/summary` |
 | `CUSTOMIZED_DIR` | 自定义操作输出目录 | — | `storage/customized` |
+| `TASK_INDEX_DIR` | 任务索引输出目录 | — | `storage/task_index` |
+| `ENTRY_TAGS_FILE` | tag 数据文件路径 | — | `storage/entry_tags.json` |
 | **Provider** | | | |
 | `TEXT_PROVIDER` | 文本分析（insights、summary、录音转写后分析） | `openai`、`anthropic`、`google`、`groq`、`mistral`、`mock` | `mock` |
 | `MM_PROVIDER` | 多模态（截图分析、DIRECT_MULTIMODAL 下录音） | 同上 | `mock` |
@@ -342,6 +388,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 | `ENABLE_SCHEDULER` | scheduler 总开关 | `true`、`false` | `true` |
 | `ENABLE_INSIGHTS` | 是否启用每日洞察 | `true`、`false` | `true` |
 | `ENABLE_SUMMARY` | 是否启用定期摘要 | `true`、`false` | `true` |
+| `ENABLE_TASK_INDEX` | 是否启用任务索引（tag + 索引） | `true`、`false` | `true` |
 | `ENABLE_CUSTOM_OPERATION` | 是否启用自定义操作 | `true`、`false` | `false` |
 | **音频** | | | |
 | `AUDIO_MODE` | 录音处理模式 | `TRANSCRIBE_THEN_ANALYZE`、`DIRECT_MULTIMODAL` | `TRANSCRIBE_THEN_ANALYZE` |
@@ -353,6 +400,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 | `INSIGHTS_TARGET_DAY_OFFSET` | 洞察目标日：0=当天，1=前一天 | `0`、`1` 等 | `1` |
 | `SUMMARY_CRON` | 摘要执行时间（cron） | cron 表达式 | `0 2 * * 0` |
 | `SUMMARY_WINDOW_DAYS` | 摘要覆盖天数；可取任意正整数（如 30），窗口越大 token 消耗越大 | 正整数 | `7` |
+| `TASK_INDEX_TOP_N` | 索引中展示的 top tag 数量 | 正整数 | `3` |
 | `CUSTOM_OPERATION_MODE` | 自定义操作触发方式 | `ON_EACH_TRIGGER`、`CRON` | `ON_EACH_TRIGGER` |
 | `CUSTOM_OPERATION_CRON` | 自定义操作 cron（仅 CRON 模式） | cron 表达式 | `0 */6 * * *` |
 | **输入限制** | | | |
@@ -376,9 +424,10 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 - `storage/timeline.md`：按时间顺序的原始记录；每条仅含 `timestamp`、`timestamp_display`、`extracted_content` 三字段
 - `storage/insights/`：每日洞察；文件命名 `YYYY-MM-DD.md`（分析目标日期）
 - `storage/summary/`：定期摘要；文件命名 `{start_day}_{end_day}.md`（如 `2025-02-18_2025-02-24.md`），覆盖天数由 `SUMMARY_WINDOW_DAYS` 决定
+- `storage/task_index/`：任务索引（日级 `daily/`、周级 `weekly/`，含 `.md` 与 `.json`）；依赖 `storage/entry_tags.json` 的 tag 数据
 - `storage/customized/`：自定义操作（Custom Operation）的输出
 
-存储路径可通过 `STORAGE_ROOT`、`TIMELINE_FILE`、`INSIGHTS_DIR`、`SUMMARY_DIR`、`CUSTOMIZED_DIR` 自定义。
+存储路径可通过 `STORAGE_ROOT`、`TIMELINE_FILE`、`INSIGHTS_DIR`、`SUMMARY_DIR`、`TASK_INDEX_DIR`、`ENTRY_TAGS_FILE`、`CUSTOMIZED_DIR` 自定义。
 
 ### 4.1 输入限制与媒体类型
 - **MAX_UPLOAD_MB**：上传大小上限（默认 25MB）
@@ -387,7 +436,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 - **ALLOWED_AUDIO_MIME**：支持的音频格式，如 `audio/m4a,audio/mp4,audio/mpeg,audio/wav,audio/x-wav`
 
 ### 4.2 同步（Sync）
-启用 `SYNC_ENABLE=true` 并配置对应渠道（飞书 `FEISHU_*`、Telegram `TELEGRAM_*`、Discord `DISCORD_*`、WhatsApp `WHATSAPP_*`）后，timeline 条目、insights、summary 可推送至外部。`SYNC_DEFAULT_FREQUENCY` 控制即时推送或按 `SYNC_DEFAULT_CRON` 批量推送。详见 `.env.example` 注释。
+启用 `SYNC_ENABLE=true` 并配置对应渠道（飞书 `FEISHU_*`、Telegram `TELEGRAM_*`、Discord `DISCORD_*`、WhatsApp `WHATSAPP_*`）后，timeline 条目、insights、summary 可推送至外部。`SYNC_DEFAULT_FREQUENCY` 控制即时推送或按 `SYNC_DEFAULT_CRON` 批量推送。详见 [SYNC_CHANNELS.md](SYNC_CHANNELS.md)。
 
 ### 4.3 安全（可选）
 默认 `SKIP_SIGNATURE_VERIFICATION=true`，不校验请求签名。若启用签名校验，需设置 `REQUEST_SIGNATURE_SECRET` 并在客户端请求头携带 `X-AuraCap-Signature`（HMAC-SHA256）。
@@ -401,6 +450,7 @@ AuraCap 的四类提示词位于 `prompts/` 目录，分别驱动 timeline 提�
 
 ### 6. 相关文档
 - [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md)：GitHub-only 完整指南（含步骤截图）
+- [SYNC_CHANNELS.md](SYNC_CHANNELS.md)：飞书 / Telegram / Discord / WhatsApp 推送渠道配置流程
 - [TESTING_GITHUB_APP.md](TESTING_GITHUB_APP.md)：GitHub App 版测试清单
 - [shortcuts/README.md](../shortcuts/README.md)：模板快捷指令说明
 
@@ -590,6 +640,7 @@ Default `TRANSCRIBE_THEN_ANALYZE` recommended; `DIRECT_MULTIMODAL` requires audi
 - **ENABLE_SCHEDULER**: master switch (default `true`); when `false`, GitHub Actions job skips, self-host script exits early; **does not affect** HTTP manual trigger `/v1/tasks/run-scheduled`
 - **ENABLE_INSIGHTS**: enable daily insights (default `true`)
 - **ENABLE_SUMMARY**: enable periodic summary (default `true`)
+- **ENABLE_TASK_INDEX**: enable task index (tag + tag-weighted index, default `true`)
 - **ENABLE_CUSTOM_OPERATION**: enable custom operation (default `false`), see below
 
 **Custom operation**: Extra AI processing on timeline extract results, output to `storage/customized/`. Requires `prompts/customized_prompts.md` (or `CUSTOMIZED_PROMPT_FILE`). `CUSTOM_OPERATION_MODE`: `ON_EACH_TRIGGER`=run immediately after each capture; `CRON`=run on `CUSTOM_OPERATION_CRON` (default every 6 hours). Usage steps: [3.6 Prompts](#36-prompts).
@@ -629,13 +680,14 @@ Conversion: Beijing = UTC+8; US Eastern (winter) = UTC+5; US Pacific (winter) = 
 
 ### 3.6 Prompts
 
-Four prompt files under `prompts/` drive timeline extraction, daily insights, periodic summaries, and custom operation. Edit them directly or set custom paths via env vars.
+Five prompt files under `prompts/` drive timeline extraction, daily insights, periodic summaries, task index tagging, and custom operation. Edit them directly or set custom paths via env vars.
 
 | File | Purpose | Trigger | Model |
 |------|---------|---------|-------|
 | `timeline_prompts.md` | Extract core info from screenshots/recordings into `storage/timeline.md` | On each capture upload | Multimodal (screenshot) / Text or Multimodal (audio) |
 | `insights_prompts.md` | Analyze the day's timeline for patterns, intent, and open threads | Daily (see variables below) | Text |
 | `summary_prompts.md` | Longitudinal analysis of timeline + insights; themes, progress, suggestions | Weekly (see variables below) | Text |
+| `tagging_zh.md` / `tagging_en.md` | Assign 1–3 semantic tags per timeline entry for task indexing | Daily (same cron as insights) | Text |
 | `customized_prompts.md` | Extra AI processing on timeline extract results, output to `storage/customized/` | Depends on `CUSTOM_OPERATION_MODE`: after each capture or on cron schedule | Text |
 
 **Trigger variables** (Self-host: `.env`. GitHub-only: `Settings -> Secrets and variables -> Actions` -> Variables):
@@ -650,13 +702,17 @@ Four prompt files under `prompts/` drive timeline extraction, daily insights, pe
 | summary | `ENABLE_SUMMARY` | Enable periodic summary | `true` |
 | | `SUMMARY_CRON` | Cron expression | `0 2 * * 0` (weekly Sunday UTC 02:00) |
 | | `SUMMARY_WINDOW_DAYS` | Summary window in days | `7` |
+| tagging | `ENABLE_TASK_INDEX` | Enable task index (tag + index) | `true` |
+| | `INSIGHTS_CRON` | Daily tag + index share this cron with insights | `0 1 * * *` |
+| | `SUMMARY_CRON` | Weekly index shares this cron with summary | `0 2 * * 0` |
+| | `TASK_INDEX_TOP_N` | Number of top tags shown in index | `3` |
 | customized | `ENABLE_CUSTOM_OPERATION` | Enable custom operation | `false` |
 | | `CUSTOM_OPERATION_MODE` | `ON_EACH_TRIGGER`=after each capture; `CRON`=on schedule | `ON_EACH_TRIGGER` |
 | | `CUSTOM_OPERATION_CRON` | Cron expression (only when `CRON` mode; requires `ENABLE_SCHEDULER=true`) | `0 */6 * * *` (every 6 hours) |
 
 Insights/summary take effect when `ENABLE_SCHEDULER=true` and the respective `ENABLE_*` is `true`; customized in `ON_EACH_TRIGGER` mode does not depend on scheduler, while `CRON` mode requires it. Cron format and examples: [3.5 Scheduler](#35-scheduler).
 
-**Custom paths**: Set `TIMELINE_PROMPT_FILE`, `INSIGHTS_PROMPT_FILE`, `SUMMARY_PROMPT_FILE`, `CUSTOMIZED_PROMPT_FILE` in `.env` or GitHub Actions Variables to point to your own Markdown files.
+**Custom paths**: Set `TIMELINE_PROMPT_FILE`, `INSIGHTS_PROMPT_FILE`, `SUMMARY_PROMPT_FILE`, `TAGGING_PROMPT_FILE`, `CUSTOMIZED_PROMPT_FILE` in `.env` or GitHub Actions Variables to point to your own Markdown files.
 
 **Prompt language routing**: AuraCap supports language-specific prompts for Chinese and English output.
 
@@ -664,6 +720,7 @@ Insights/summary take effect when `ENABLE_SCHEDULER=true` and the respective `EN
   - `request_locale` (default): Select prompt by `locale`—`AURACAP_LOCALE` in shortcuts, `OUTPUT_LOCALE` in GitHub dispatch; change that variable to switch output language, zero extra API calls
   - `content_detect`: Auto-detect content language (screenshots add 1 multimodal model call per capture; audio uses transcript heuristic, no extra call); falls back to `request_locale` on detection failure
 - **Insights / Summary**: Two variants each (`insights_zh.md`, `insights_en.md`, `summary_zh.md`, `summary_en.md`), always follow `OUTPUT_LOCALE`, no extra variables
+- **Tagging**: Supports `tagging_zh.md`, `tagging_en.md`, follows `OUTPUT_LOCALE`
 - Non-zh/en locales fall back to `en`; missing new files fall back to original single files (e.g. `timeline_prompts.md`), zero migration cost
 
 **Using customized prompts**: 1. Edit `prompts/customized_prompts.md` (or set `CUSTOMIZED_PROMPT_FILE` to another path); 2. Set `ENABLE_CUSTOM_OPERATION=true` in `.env`; 3. Optional: set `CUSTOM_OPERATION_MODE` (`ON_EACH_TRIGGER` or `CRON`) and `CUSTOM_OPERATION_CRON`. Output goes to `storage/customized/`.
@@ -675,6 +732,43 @@ Insights/summary take effect when `ENABLE_SCHEDULER=true` and the respective `EN
 
 **Adjusting prompts by focus**: If your captures skew toward work, life, or study, you can edit prompts to emphasize that focus. For example: **work**—meetings, deadlines, decisions, action items; **study**—concepts, memory cues, items to review; **life**—experiences, preferences, to-dos. Edit the relevant files under `prompts/` or set `TIMELINE_PROMPT_FILE`, `INSIGHTS_PROMPT_FILE`, `SUMMARY_PROMPT_FILE` to your own paths; no extra config needed, tune incrementally as you go.
 
+#### 3.6.1 Task Index
+
+The task index assigns semantic tags (e.g. work, health, learning) to timeline entries and builds daily/weekly tag-weighted indexes to surface theme distribution.
+
+**Schedule**: Daily tag generation and index share cron with insights (default UTC 01:00); weekly index shares cron with summary (default Sunday UTC 02:00).
+
+**Output layout**: `storage/task_index/daily/{date}.md` and `.json`; `storage/task_index/weekly/{start}_{end}.md` and `.json`; `storage/entry_tags.json` stores `{ "entry-xxx": ["work", "meeting"], ... }`.
+
+**Variable quick reference**:
+
+| Variable | Meaning (plain) | Example | When to change |
+|----------|-----------------|---------|----------------|
+| `ENABLE_TASK_INDEX` | Enable task index | `true` / `false` | Set `false` to disable |
+| `TASK_INDEX_TOP_N` | Max tags shown in index (e.g. work, health) | `3`, `5`, `10` | Increase to see more themes |
+| `TASK_INDEX_DIR` | Output directory for index files | `storage/task_index` | Usually leave default |
+| `ENTRY_TAGS_FILE` | Path to tag data file | `storage/entry_tags.json` | Usually leave default |
+| `TAGGING_PROMPT_FILE` | Custom tagging prompt path | `prompts/tagging_prompts.md` | When using your own prompt |
+
+**Out of the box**: If `TEXT_PROVIDER` is configured (insights/summary work), task index runs by default with **no extra config**. To set explicitly:
+
+```env
+# Task index (default on, no change needed)
+ENABLE_TASK_INDEX=true
+TASK_INDEX_TOP_N=3
+```
+
+**Common scenarios**:
+
+| Scenario | Action | Config example |
+|----------|--------|----------------|
+| Disable task index | No tags or index | `ENABLE_TASK_INDEX=false` |
+| Show 5 tags in index | See more themes | `TASK_INDEX_TOP_N=5` |
+| Custom tag vocabulary | Add tags like "exercise", "reading" | Edit `prompts/tagging_en.md`, or set `TAGGING_PROMPT_FILE=prompts/my_tagging.md` |
+| Change output path | Write index elsewhere | `TASK_INDEX_DIR=my_index`, `ENTRY_TAGS_FILE=my_tags.json` |
+
+**Custom tag vocabulary**: Edit `prompts/tagging_zh.md` or `tagging_en.md` (or set `TAGGING_PROMPT_FILE`) to adjust the preferred tags (work, health, finance, learning, social, life, other).
+
 ### 3.7 Variable Reference (Quick Lookup)
 
 Common variables and their purposes. Full list in `.env.example`.
@@ -683,7 +777,7 @@ Common variables and their purposes. Full list in `.env.example`.
 
 **GitHub-only Actions Variables**: In mock mode, all Variables can be left unset (defaults apply); no Secrets needed for end-to-end verification. For real models, you must configure the provider Secret (e.g. `OPENAI_API_KEY`) and set `TEXT_PROVIDER`/`MM_PROVIDER`/`ASR_PROVIDER` (or `UNIFIED_PROVIDER`) to non-mock; missing key causes `AUTH_FAILED`.
 
-**Feature flags**: `EXTRACT_ONLY=true` skips insights/summary; `ENABLE_SCHEDULER=false` disables scheduled tasks (but `/v1/tasks/run-scheduled` still works); `ENABLE_INSIGHTS`/`ENABLE_SUMMARY=false` disables those features; `SYNC_ENABLE=true` requires channel webhook/token config.
+**Feature flags**: `EXTRACT_ONLY=true` skips insights/summary; `ENABLE_SCHEDULER=false` disables scheduled tasks (but `/v1/tasks/run-scheduled` still works); `ENABLE_INSIGHTS`/`ENABLE_SUMMARY=false` disables those features; `ENABLE_TASK_INDEX=false` disables task index; `SYNC_ENABLE=true` requires channel webhook/token config. If task_index directory is empty, check `ENABLE_TASK_INDEX` and `TEXT_PROVIDER` (tagging uses text model).
 
 #### Shortcut Variables (GitHub-only)
 
@@ -710,6 +804,8 @@ Common variables and their purposes. Full list in `.env.example`.
 | `INSIGHTS_DIR` | Daily insights output directory | — | `storage/insights` |
 | `SUMMARY_DIR` | Periodic summary output directory | — | `storage/summary` |
 | `CUSTOMIZED_DIR` | Custom operation output directory | — | `storage/customized` |
+| `TASK_INDEX_DIR` | Task index output directory | — | `storage/task_index` |
+| `ENTRY_TAGS_FILE` | Tag data file path | — | `storage/entry_tags.json` |
 | **Provider** | | | |
 | `TEXT_PROVIDER` | Text analysis (insights, summary, transcript analysis) | `openai`, `anthropic`, `google`, `groq`, `mistral`, `mock` | `mock` |
 | `MM_PROVIDER` | Multimodal (screenshot, audio when DIRECT_MULTIMODAL) | same as above | `mock` |
@@ -721,6 +817,7 @@ Common variables and their purposes. Full list in `.env.example`.
 | `ENABLE_SCHEDULER` | Scheduler master switch | `true`, `false` | `true` |
 | `ENABLE_INSIGHTS` | Enable daily insights | `true`, `false` | `true` |
 | `ENABLE_SUMMARY` | Enable periodic summary | `true`, `false` | `true` |
+| `ENABLE_TASK_INDEX` | Enable task index (tag + index) | `true`, `false` | `true` |
 | `ENABLE_CUSTOM_OPERATION` | Enable custom operation | `true`, `false` | `false` |
 | **Audio** | | | |
 | `AUDIO_MODE` | Recording processing mode | `TRANSCRIBE_THEN_ANALYZE`, `DIRECT_MULTIMODAL` | `TRANSCRIBE_THEN_ANALYZE` |
@@ -732,6 +829,7 @@ Common variables and their purposes. Full list in `.env.example`.
 | `INSIGHTS_TARGET_DAY_OFFSET` | Insights target day: 0=today, 1=yesterday | `0`, `1`, etc. | `1` |
 | `SUMMARY_CRON` | Summary run time (cron) | cron expression | `0 2 * * 0` |
 | `SUMMARY_WINDOW_DAYS` | Summary window in days; any positive integer (e.g. 30); larger windows increase token usage | positive integer | `7` |
+| `TASK_INDEX_TOP_N` | Number of top tags shown in index | positive integer | `3` |
 | `CUSTOM_OPERATION_MODE` | Custom op trigger mode | `ON_EACH_TRIGGER`, `CRON` | `ON_EACH_TRIGGER` |
 | `CUSTOM_OPERATION_CRON` | Custom op cron (CRON mode only) | cron expression | `0 */6 * * *` |
 | **Input limits** | | | |
@@ -755,9 +853,10 @@ Common variables and their purposes. Full list in `.env.example`.
 - `storage/timeline.md`: raw time-ordered entries; each entry has only `timestamp`, `timestamp_display`, `extracted_content`
 - `storage/insights/`: daily insights; file naming `YYYY-MM-DD.md` (target day analyzed)
 - `storage/summary/`: periodic summaries; file naming `{start_day}_{end_day}.md` (e.g. `2025-02-18_2025-02-24.md`), window set by `SUMMARY_WINDOW_DAYS`
+- `storage/task_index/`: task index (daily `daily/`, weekly `weekly/`, `.md` and `.json`); depends on `storage/entry_tags.json` for tag data
 - `storage/customized/`: custom operation output
 
-Paths configurable via `STORAGE_ROOT`, `TIMELINE_FILE`, `INSIGHTS_DIR`, `SUMMARY_DIR`, `CUSTOMIZED_DIR`.
+Paths configurable via `STORAGE_ROOT`, `TIMELINE_FILE`, `INSIGHTS_DIR`, `SUMMARY_DIR`, `TASK_INDEX_DIR`, `ENTRY_TAGS_FILE`, `CUSTOMIZED_DIR`.
 
 ### 4.1 Input Limits and Media Types
 - **MAX_UPLOAD_MB**: upload size limit (default 25MB)
@@ -766,7 +865,7 @@ Paths configurable via `STORAGE_ROOT`, `TIMELINE_FILE`, `INSIGHTS_DIR`, `SUMMARY
 - **ALLOWED_AUDIO_MIME**: e.g. `audio/m4a,audio/mp4,audio/mpeg,audio/wav,audio/x-wav`
 
 ### 4.2 Sync
-Set `SYNC_ENABLE=true` and configure channels (Feishu `FEISHU_*`, Telegram `TELEGRAM_*`, Discord `DISCORD_*`, WhatsApp `WHATSAPP_*`) to push timeline/insights/summary externally. `SYNC_DEFAULT_FREQUENCY` controls immediate vs batch at `SYNC_DEFAULT_CRON`. See `.env.example` comments.
+Set `SYNC_ENABLE=true` and configure channels (Feishu `FEISHU_*`, Telegram `TELEGRAM_*`, Discord `DISCORD_*`, WhatsApp `WHATSAPP_*`) to push timeline/insights/summary externally. `SYNC_DEFAULT_FREQUENCY` controls immediate vs batch at `SYNC_DEFAULT_CRON`. See [SYNC_CHANNELS.md](SYNC_CHANNELS.md).
 
 ### 4.3 Security (Optional)
 Default `SKIP_SIGNATURE_VERIFICATION=true`, no request signature check. To enable, set `REQUEST_SIGNATURE_SECRET` and send `X-AuraCap-Signature` (HMAC-SHA256) in client requests.
@@ -780,5 +879,6 @@ Default `SKIP_SIGNATURE_VERIFICATION=true`, no request signature check. To enabl
 
 ### 6. Related Docs
 - [GITHUB_RELEASE_INBOX.md](GITHUB_RELEASE_INBOX.md): GitHub-only full guide (with step screenshots)
+- [SYNC_CHANNELS.md](SYNC_CHANNELS.md): Feishu / Telegram / Discord / WhatsApp push channel config
 - [TESTING_GITHUB_APP.md](TESTING_GITHUB_APP.md): GitHub App test checklist
 - [shortcuts/README.md](../shortcuts/README.md): Shortcut templates

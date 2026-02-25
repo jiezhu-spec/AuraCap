@@ -40,6 +40,8 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `DEFAULT_TIMEZONE` | `local` | 同左 | 时间戳时区 |
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | 同左 | Release tag（与步骤 4 对应） |
 | `UNIFIED_PROVIDER`（可选） | 留空 | `openai`、`google` 等 | **与 TEXT_PROVIDER 二选一**；设此项则 TEXT/MM/ASR_PROVIDER 可省略 |
+| `ENABLE_TASK_INDEX`（可选） | `true` | `true` 或 `false` | 任务索引开关；不配默认开启 |
+| `TASK_INDEX_TOP_N`（可选） | `3` | `3`、`5` 等 | 索引显示几个 tag；不配默认 3 |
 
 处理完成后会自动从 Release 删除已上传文件，保持收件箱清爽，避免重复上传 `shot.png` 时出现 `already_exists` 错误。
 
@@ -102,7 +104,9 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ### 二、在 iPhone 上搭快捷指令
 
-> **快捷方式：若不想从头手动配置，可 [下载已脱敏的快捷指令模板（截图）](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。**
+> **快捷方式：若不想从头手动配置，可 [下载已脱敏的快捷指令模板（截图）](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226)、[快捷指令模板（拍照）](https://www.icloud.com/shortcuts/a316724f90d3481fa28d563214d0d3e0)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。**
+>
+> **提醒**：若使用 GitHub Mobile App 触发 workflow，模板中默认的 GitHub 用户名 `massif-01` 需改为你自己的用户名，否则会 404。
 
 ### 步骤 5：新建快捷指令并添加变量
 
@@ -335,6 +339,8 @@ Click `Variables`, add by purpose:
 | `DEFAULT_TIMEZONE` | `local` | same | Timestamp timezone |
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | same | Release tag (matches Step 4) |
 | `UNIFIED_PROVIDER` (optional) | leave empty | `openai`, `google`, etc. | **Mutually exclusive with TEXT_PROVIDER**; when set, TEXT/MM/ASR_PROVIDER can be omitted |
+| `ENABLE_TASK_INDEX` (optional) | `true` | `true` or `false` | Task index switch; unset defaults to on |
+| `TASK_INDEX_TOP_N` (optional) | `3` | `3`, `5`, etc. | Number of tags shown in index; unset defaults to 3 |
 
 Uploaded files are automatically deleted from Release after processing to keep the inbox clean and avoid `already_exists` when re-uploading `shot.png`.
 
@@ -397,7 +403,9 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 
 ### Part II: Build Shortcut on iPhone
 
-> **Shortcut: Prefer not to configure from scratch? [Screenshot template](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8), [Voice template](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226) (personal info already masked). Import one, then fill in your GitHub username, token, `release_id`, etc.**
+> **Shortcut: Prefer not to configure from scratch? [Screenshot template](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8), [Voice template](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226), [Photo template](https://www.icloud.com/shortcuts/a316724f90d3481fa28d563214d0d3e0) (personal info already masked). Import one, then fill in your GitHub username, token, `release_id`, etc.**
+>
+> **Note**: If using GitHub Mobile App to trigger the workflow, change the default GitHub username `massif-01` in the template to your own, or you'll get 404.
 
 #### Step 5: New Shortcut and Variables
 

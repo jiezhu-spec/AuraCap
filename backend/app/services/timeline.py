@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from datetime import date, datetime
 from pathlib import Path
@@ -42,6 +43,7 @@ def append_timeline(
         trace=trace,
     )
     block = {
+        "id": f"entry-{entry.id}",
         "timestamp": entry.timestamp.isoformat(),
         "timestamp_display": entry.timestamp_display,
         "extracted_content": entry.extracted_content,
@@ -62,14 +64,20 @@ def list_timeline_entries(timeline_file: Path) -> list[dict]:
     text = timeline_file.read_text(encoding="utf-8")
     chunks = text.split("```json")
     entries: list[dict] = []
-    for chunk in chunks[1:]:
+    for i in range(1, len(chunks)):
+        chunk = chunks[i]
         if "```" not in chunk:
             continue
         raw = chunk.split("```", 1)[0].strip()
         try:
-            entries.append(json.loads(raw))
+            data = json.loads(raw)
         except json.JSONDecodeError:
             continue
+        if "id" not in data:
+            prev = chunks[i - 1]
+            matches = re.findall(r"### (entry-[a-f0-9]{32})", prev)
+            data["id"] = matches[-1] if matches else None
+        entries.append(data)
     return entries
 
 

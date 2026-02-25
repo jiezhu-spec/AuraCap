@@ -39,12 +39,15 @@ def test_scheduler_runs_with_mock_provider(tmp_path: Path) -> None:
         insights_dir=tmp_path / "insights",
         summary_dir=tmp_path / "summary",
         customized_dir=tmp_path / "customized",
+        task_index_dir=tmp_path / "task_index",
+        entry_tags_file=tmp_path / "entry_tags.json",
         insights_cron="* * * * *",
         summary_cron="* * * * *",
         insights_target_day_offset=0,
         enable_custom_operation=False,
         enable_insights=True,
         enable_summary=True,
+        enable_task_index=True,
     )
     settings.insights_dir.mkdir(parents=True, exist_ok=True)
     settings.summary_dir.mkdir(parents=True, exist_ok=True)

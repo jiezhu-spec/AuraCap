@@ -102,19 +102,21 @@ python backend/main.py
 - `storage/timeline.md`：按时间顺序记录条目，包含 AI 提取结果
 - `storage/insights/`：每日洞察（默认每天一次，可配置）
 - `storage/summary/`：定期摘要（默认每周一次，可配置）
+- `storage/task_index/`：任务索引（按 tag 权重的日/周索引，默认每日生成）
 - `storage/customized/`：自定义操作输出（需启用 `ENABLE_CUSTOM_OPERATION`）
 
 所有结果均为 Markdown，可同步到 Notion、Obsidian 或任意知识管理系统。你的数据结构不会被平台锁定，也便于长期积累与二次利用。调度频率与 cron 配置见 [用户手册 3.5 自动化调度](docs/USERGUIDE.md#35-自动化调度)。
 
 ### 提示词说明
 
-AuraCap 使用四类提示词驱动 AI 分析，均位于 `prompts/` 目录：
+AuraCap 使用五类提示词驱动 AI 分析，均位于 `prompts/` 目录：
 
 | 提示词 | 作用 | 触发时机 |
 |--------|------|----------|
 | `timeline_prompts.md` | 从截图或录音中提取核心信息，写入 timeline | 每次截图/录音时 |
 | `insights_prompts.md` | 通读当日 timeline，发现跨条目的模式与未完成信号 | 每日定时（默认 UTC 01:00） |
 | `summary_prompts.md` | 纵向分析一段时间内的 timeline + insights，归纳轨迹与建议 | 每周定时（默认周日 UTC 02:00） |
+| `tagging_zh.md` / `tagging_en.md` | 为 timeline 条目生成 1–3 个语义 tag，供任务索引使用 | 每日定时（与 insights 同 cron） |
 | `customized_prompts.md` | 对 timeline 提取结果做额外 AI 处理，输出到 `storage/customized/` | 每次捕捉后或按 cron 定时（需启用 `ENABLE_CUSTOM_OPERATION`） |
 
 Timeline 支持 4 套场景化提示词（截图/录音 × 中文/英文），insights 与 summary 各支持中英文 2 套；通过 `TIMELINE_LANG_MODE` 与 `OUTPUT_LOCALE` 控制语言路由。默认 timeline 提示词针对 **iOS 截图** 优化（过滤状态栏等系统噪音）。若你主要使用**录音**，可自行修改 `prompts/timeline_prompts.md`，或通过 `TIMELINE_PROMPT_FILE` 指定自己的文件；自定义操作提示词可通过 `CUSTOMIZED_PROMPT_FILE` 指定路径。**OpenAI 兼容**：`OPENAI_*` 变量适用于 OpenAI 官方及 SiliconFlow、OpenRouter、DeepSeek 等兼容服务，接入第三方时改 `OPENAI_BASE_URL` 即可。详见 [用户手册 3.6 提示词](docs/USERGUIDE.md#36-提示词)。
@@ -215,19 +217,21 @@ Or use Docker: `docker compose up -d --build`. Visit `http://127.0.0.1:8000/heal
 - `storage/timeline.md`: Time-ordered entries with AI-extracted content
 - `storage/insights/`: Daily insights (default: once per day, configurable)
 - `storage/summary/`: Periodic summaries (default: once per week, configurable)
+- `storage/task_index/`: Task index (tag-weighted daily/weekly index, generated daily by default)
 - `storage/customized/`: Custom operation output (requires `ENABLE_CUSTOM_OPERATION`)
 
 All output is Markdown and can be synced to Notion, Obsidian, or any knowledge management system. Your data format stays platform-agnostic and supports long-term accumulation and reuse. For schedule frequency and cron configuration, see [User Guide 3.5 Scheduler](docs/USERGUIDE.md#35-scheduler).
 
 ### Prompts
 
-AuraCap uses four prompt files under `prompts/` to drive AI analysis:
+AuraCap uses five prompt files under `prompts/` to drive AI analysis:
 
 | Prompt | Purpose | Trigger |
 |--------|---------|---------|
 | `timeline_prompts.md` | Extract key info from screenshots or recordings into timeline | On each capture |
 | `insights_prompts.md` | Analyze the day's timeline for patterns and open threads | Daily (default UTC 01:00) |
 | `summary_prompts.md` | Longitudinal analysis of timeline + insights over a period | Weekly (default Sunday UTC 02:00) |
+| `tagging_zh.md` / `tagging_en.md` | Assign 1–3 semantic tags per timeline entry for task indexing | Daily (same cron as insights) |
 | `customized_prompts.md` | Extra AI processing on timeline extract results, output to `storage/customized/` | After each capture or on cron schedule (requires `ENABLE_CUSTOM_OPERATION`) |
 
 Timeline supports four scenario-specific prompts (screenshot/audio × Chinese/English); insights and summary each support two language variants. Language routing is controlled by `TIMELINE_LANG_MODE` and `OUTPUT_LOCALE`. The default timeline prompt is tuned for **iOS screenshots** (filtering status bar etc.). If you mainly use **voice recordings**, customize `prompts/timeline_prompts.md` or set `TIMELINE_PROMPT_FILE` to your own file; custom operation prompt path can be set via `CUSTOMIZED_PROMPT_FILE`. **OpenAI compatible**: `OPENAI_*` variables apply to OpenAI official and SiliconFlow, OpenRouter, DeepSeek, etc.; for third-party, change `OPENAI_BASE_URL`. See [User Guide 3.6 Prompts](docs/USERGUIDE.md#36-prompts).

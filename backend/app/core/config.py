@@ -29,11 +29,18 @@ class Settings(BaseModel):
     insights_prompt_file: Path = Path("prompts/insights_prompts.md")
     summary_prompt_file: Path = Path("prompts/summary_prompts.md")
     customized_prompt_file: Path = Path("prompts/customized_prompts.md")
+    tagging_prompt_file: Path = Path("prompts/tagging_prompts.md")
+
+    task_index_dir: Path = Path("storage/task_index")
+    entry_tags_file: Path = Path("storage/entry_tags.json")
+    task_index_top_n: int = 3
 
     extract_only: bool = False
     enable_scheduler: bool = True
+    force_scheduled_tasks: bool = False
     enable_insights: bool = True
     enable_summary: bool = True
+    enable_task_index: bool = True
     enable_custom_operation: bool = False
 
     audio_mode: Literal["TRANSCRIBE_THEN_ANALYZE", "DIRECT_MULTIMODAL"] = "TRANSCRIBE_THEN_ANALYZE"
@@ -141,6 +148,13 @@ class Settings(BaseModel):
             raise ValueError("insights_target_day_offset must be >= 0")
         return v
 
+    @field_validator("task_index_top_n")
+    @classmethod
+    def validate_task_index_top_n(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("task_index_top_n must be >= 1")
+        return v
+
 
 def _parse_dotenv(path: Path) -> dict[str, str]:
     if not path.exists():
@@ -173,6 +187,7 @@ def get_settings() -> Settings:
     settings.insights_dir.mkdir(parents=True, exist_ok=True)
     settings.summary_dir.mkdir(parents=True, exist_ok=True)
     settings.customized_dir.mkdir(parents=True, exist_ok=True)
+    settings.task_index_dir.mkdir(parents=True, exist_ok=True)
     settings.timeline_file.parent.mkdir(parents=True, exist_ok=True)
     settings.timeline_file.touch(exist_ok=True)
     return settings

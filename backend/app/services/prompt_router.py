@@ -66,6 +66,14 @@ def resolve_summary_prompt(lang: Literal["zh", "en"], settings: Settings) -> Pat
     return settings.summary_prompt_file
 
 
+def resolve_tagging_prompt(lang: Literal["zh", "en"], settings: Settings) -> Path:
+    """Return path for tagging prompt; fallback to settings.tagging_prompt_file if missing."""
+    path = settings.prompts_dir / f"tagging_{lang}.md"
+    if path.exists():
+        return path
+    return settings.tagging_prompt_file
+
+
 _LANG_DETECT_PROMPT = (
     "Look at this image. What is the primary language of the visible text? "
     "Reply with exactly one word: zh or en. Nothing else."
