@@ -41,3 +41,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-076c16f469f643f791727ed5a38dc5fd
+```json
+{
+  "id": "entry-076c16f469f643f791727ed5a38dc5fd",
+  "timestamp": "2026-02-26T17:25:47.858712+00:00",
+  "timestamp_display": "2026-02-26 17:25:47 UTC",
+  "extracted_content": "### 核心内容\n\n#### 【核心引擎升级】\n- **Mamba 前缀缓存**  \n  - 使用参数：`--enable-prefix-caching --mamba-cache-mode align`  \n  - 直接缓存 Mamba 状态，性能提升约 2 倍。\n\n- **会话式流式输入**  \n  - 新增 `StreamingInput API`  \n  - 专为 ASR 等交互式场景设计。\n\n- **异步调度 + 流水线并行**  \n  - `--async-scheduling` 现已支持 Pipeline Parallelism。\n\n---\n\n#### 【NVIDIA Blackwell】\n- **FlashInfer MLA** 成为默认后端。  \n- **FP4 内核优化**：性能最高提升 65%。  \n- **E2E 吞吐提升**：约 4%。  \n- **MoE 性能**：`grouped topk fusion` 提升 1.2%-2%。\n\n---\n\n#### 【AMD ROCm】\n- **MoRI EP**：高性能 Expert Parallel all2all 通信。  \n- **RDNA3/RDNA4** 消费级显卡支持。  \n- **FP4 MLA**：投影 GEMM 动态量化。"
+}
+```
+
