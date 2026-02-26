@@ -31,3 +31,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-275b130bb47349339d300e845543a38e
+```json
+{
+  "id": "entry-275b130bb47349339d300e845543a38e",
+  "timestamp": "2026-02-26T17:23:37.997513+00:00",
+  "timestamp_display": "2026-02-26 17:23:37 UTC",
+  "extracted_content": "### 核心内容\n\n**如何在 Cursor 中使用 Context7：**\n\n1. **操作步骤：**\n   - 打开 Cursor 的设置 → 选择 MCP。\n   - 添加新的 MCP。\n\n2. **代码配置：**\n   将以下代码粘贴到 `~/.cursor/mcp.json` 文件中：\n   ```json\n   {\n       \"mcpServers\": {\n           \"context7\": {\n               \"command\": \"npx\",\n               \"args\": [\"-y\", \"@upstash/context7-mcp@latest\"]\n           }\n       }\n   }\n   ```\n\n3. **注意事项：**\n   - 如果需要，可以重启 Cursor。\n\n---\n\n### 补充信息\n\n- **主题**：Cursor 的高效使用技巧。\n- **亮点**：通过 Context7 提升 Cursor 的效率，号称能让其性能提升 200 倍。\n- **互动数据**：点赞 45，收藏 92，评论 1。"
+}
+```
+
