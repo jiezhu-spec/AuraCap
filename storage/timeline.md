@@ -11,3 +11,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-29855104f239432c9e0e9735838e20b6
+```json
+{
+  "id": "entry-29855104f239432c9e0e9735838e20b6",
+  "timestamp": "2026-02-26T16:27:35.771356+00:00",
+  "timestamp_display": "2026-02-26 16:27:35 UTC",
+  "extracted_content": "### 核心内容\n- **研究背景**：探讨了LLM（大语言模型）的Base与Instruct之间的权重相似性，定义了权重的sigma值。\n- **关键数据**：Qwen 3.5 A3B的Base模型sigma值为 **0.01768391**，约为1%上下，表明相似性极高。\n- **补充说明**：主流LLM的sigma值普遍较小，具体细节可参考P2论文。\n\n### 行动项\n- 进一步研究P2和P3论文中的相关细节。\n\n### 标签\n#Qwen3 #weight #LLM #HKU #相似性 #reasoning"
+}
+```
+
