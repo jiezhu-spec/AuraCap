@@ -51,3 +51,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-48eeec1a6b234caf976f85db50068932
+```json
+{
+  "id": "entry-48eeec1a6b234caf976f85db50068932",
+  "timestamp": "2026-02-26T21:42:20.868214+00:00",
+  "timestamp_display": "2026-02-26 21:42:20 UTC",
+  "extracted_content": "### 核心内容\n\n1. **性能数据（tok/s）**：\n   - **5090**：\n     - 166 tok/s (z33b0t)\n     - 153 tok/s (EmmanuelMr)\n   - **4090**：\n     - 122 tok/s (StubbyTech)\n   - **3090**：\n     - 112 tok/s (sudo)\n     - 100 tok/s (Eduardo)\n   - **6800XT**：\n     - 20-30 tok/s (Dark)\n\n2. **模型信息**：\n   - 模型：Qwen3.5-35B-A3B\n   - 量化：4-bit\n   - 磁盘占用：19.7 GB\n   - 运行环境：可完全加载于单张 3090 24GB 显卡，无需分片或卸载，支持全速运行。\n\n3. **性能优化建议**：\n   - 如果在运行 Qwen3.5-35B-A3B 模型时，使用 llama.cpp 并在 24GB+ 显存下性能仅为 40-70 tok/s，说明性能未被充分利用。\n   - 建议从源码编译 llama.cpp，并添加优化参数。\n\n4. **呼吁**：\n   - 5090 显卡的性能上限尚未找到。\n   - NVIDIA 数据逐渐积累中。\n   - 呼吁提供 ROCm 平台的性能数据（GPU 和 tok/s）。\n\n### 行动项\n- 提供 ROCm 平台的 GPU 和 tok/s 数据。\n- 使用 llama.cpp 的用户可尝试从源码编译并添加优化参数以提升性能。"
+}
+```
+
