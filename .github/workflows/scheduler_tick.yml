@@ -114,9 +114,14 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add storage/
-            git commit -m "chore(storage): update artifacts from scheduler run $GITHUB_RUN_ID"
-            git pull --rebase origin "$GITHUB_REF_NAME"
-            git push origin "HEAD:$GITHUB_REF_NAME"
+            git reset HEAD storage/timeline.md 2>/dev/null || true
+            if [[ -n "$(git diff --cached --name-only)" ]]; then
+              git commit -m "chore(storage): update artifacts from scheduler run $GITHUB_RUN_ID"
+              git pull --rebase origin "$GITHUB_REF_NAME"
+              git push origin "HEAD:$GITHUB_REF_NAME"
+            else
+              echo "No storage changes to commit (excluding timeline.md)"
+            fi
           else
             echo "No storage changes to commit"
           fi
