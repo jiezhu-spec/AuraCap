@@ -166,3 +166,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-1fbb48bc84f44f5ba664947e7b5347af
+```json
+{
+  "id": "entry-1fbb48bc84f44f5ba664947e7b5347af",
+  "timestamp": "2026-02-27T16:05:17.511860+00:00",
+  "timestamp_display": "2026-02-27 16:05:17 UTC",
+  "extracted_content": "### 核心内容\n- 下周星期一计划与“脂肪”见面，见合伙人。\n- 认为这是一个非常好的消息。"
+}
+```
+
