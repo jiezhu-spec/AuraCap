@@ -126,6 +126,7 @@ Timeline 支持 4 套场景化提示词（截图/录音 × 中文/英文），in
 - 完整配置与模型选择：[docs/USERGUIDE.md](docs/USERGUIDE.md)
 - GitHub-only 详细说明：[docs/GITHUB_RELEASE_INBOX.md](docs/GITHUB_RELEASE_INBOX.md)
 - 快捷指令模板与手动搭建：[shortcuts/README.md](shortcuts/README.md)
+- 从上游同步时保留 storage：[docs/STORAGE_MIGRATION.md](docs/STORAGE_MIGRATION.md)
 
 ### 协议
 
@@ -241,6 +242,7 @@ Timeline supports four scenario-specific prompts (screenshot/audio × Chinese/En
 - Full configuration and model selection: [docs/USERGUIDE.md](docs/USERGUIDE.md)
 - GitHub-only setup details: [docs/GITHUB_RELEASE_INBOX.md](docs/GITHUB_RELEASE_INBOX.md)
 - Shortcut templates and manual setup: [shortcuts/README.md](shortcuts/README.md)
+- Keep storage when syncing from upstream: [docs/STORAGE_MIGRATION.md](docs/STORAGE_MIGRATION.md)
 
 ### License
 

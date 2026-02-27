@@ -29,7 +29,7 @@ on:
         default: local
 
 concurrency:
-  group: auracap-storage-${{ github.ref }}
+  group: auracap-ingest-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -127,11 +127,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Restore storage from cache
-        uses: actions/cache/restore@v4
-        with:
-          path: storage
-          key: storage-${{ github.repository }}-${{ github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -139,9 +134,16 @@ jobs:
         run: pip install -r requirements.txt
       - name: Process dispatch
         run: PYTHONPATH=. python scripts/process_github_dispatch.py "$GITHUB_EVENT_PATH"
-      - name: Save storage to cache
+      - name: Persist storage artifacts
         if: ${{ success() }}
-        uses: actions/cache/save@v4
-        with:
-          path: storage
-          key: storage-${{ github.repository }}-${{ github.ref }}
+        run: |
+          if [[ -n "$(git status --porcelain storage/)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add storage/
+            git commit -m "chore(storage): update artifacts from ingest run $GITHUB_RUN_ID"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          else
+            echo "No storage changes to commit"
+          fi

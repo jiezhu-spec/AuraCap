@@ -1,0 +1,4 @@
+# Keep local storage when merging (PR or fork sync)
+# Run once: git config merge.ours.driver true
+storage/* merge=ours
+storage/**/* merge=ours

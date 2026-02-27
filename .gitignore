@@ -5,6 +5,3 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 docs/internal/
-
-# Storage is per-environment; never overwrite on PR or fork sync
-storage/
