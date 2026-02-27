@@ -176,3 +176,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-8d4288aa08fe438f983f9c892ea1d3f6
+```json
+{
+  "id": "entry-8d4288aa08fe438f983f9c892ea1d3f6",
+  "timestamp": "2026-02-27T16:06:17.083757+00:00",
+  "timestamp_display": "2026-02-27 16:06:17 UTC",
+  "extracted_content": "### 核心内容\n\n**机构名称**  \n中国卫星应用产业协会（CSAiA）  \nChina Satellite Application Industry Association  \n\n**成立时间**  \n1993年  \n\n**性质**  \n国际性非政府组织（NGO）  \n\n**成员构成**  \n从事卫星制造、发射测试、网络安全、电子装备、科技教育、交通运输、电信运营、文化旅游、国际贸易等领域的企业与单位。  \n\n**主要职能**  \n1. **基础设施建设**  \n   - 推动卫星互联网基础设施建设。  \n\n2. **研发与服务**  \n   - 卫星应用系统与设备、用户终端、网络安全、数据服务、网络运营等产品的研发、制造和商业服务。  \n\n3. **解决方案推广**  \n   - 推广天地一体化卫星互联网解决方案，涵盖通信、导航、遥感等领域。  \n\n4. **资源共享与国际化服务**  \n   - 协同开发卫星应用服务平台，促进资源共享与国际市场化服务。  \n\n5. **会议与合作**  \n   - 承办国内外会议展会，推动“一带一路”国际科技与经贸合作。  \n\n**官网**  \n[www.ChinaSat.org.cn](http://www.ChinaSat.org.cn)  "
+}
+```
+
