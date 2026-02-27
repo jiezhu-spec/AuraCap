@@ -104,7 +104,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 
 ### 二、在 iPhone 上搭快捷指令
 
-> **快捷方式：若不想从头手动配置，可 [下载已脱敏的快捷指令模板（截图）](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226)、[快捷指令模板（拍照）](https://www.icloud.com/shortcuts/a316724f90d3481fa28d563214d0d3e0)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。**
+> **快捷方式：若不想从头手动配置，可 [下载已脱敏的快捷指令模板（截图）](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8)、[快捷指令模板（录音）](https://www.icloud.com/shortcuts/4c7100103c244b4eb99a0945f58be824)、[快捷指令模板（拍照）](https://www.icloud.com/shortcuts/64256ab1a3af4983b0b53360b16d627a)，导入后只需填写你的 GitHub 用户名、Token、`release_id` 等个人信息即可使用。**
 >
 > **提醒**：若使用 GitHub Mobile App 触发 workflow，模板中默认的 GitHub 用户名 `massif-01` 需改为你自己的用户名，否则会 404。
 
@@ -403,7 +403,7 @@ For real models (OpenAI, Gemini, SiliconFlow, etc.), add Variables and Secrets. 
 
 ### Part II: Build Shortcut on iPhone
 
-> **Shortcut: Prefer not to configure from scratch? [Screenshot template](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8), [Voice template](https://www.icloud.com/shortcuts/d8e7e6e49abc47318a5771c57f49a226), [Photo template](https://www.icloud.com/shortcuts/a316724f90d3481fa28d563214d0d3e0) (personal info already masked). Import one, then fill in your GitHub username, token, `release_id`, etc.**
+> **Shortcut: Prefer not to configure from scratch? [Screenshot template](https://www.icloud.com/shortcuts/9769e33cd988439b93f24f1ffc462ae8), [Voice template](https://www.icloud.com/shortcuts/4c7100103c244b4eb99a0945f58be824), [Photo template](https://www.icloud.com/shortcuts/64256ab1a3af4983b0b53360b16d627a) (personal info already masked). Import one, then fill in your GitHub username, token, `release_id`, etc.**
 >
 > **Note**: If using GitHub Mobile App to trigger the workflow, change the default GitHub username `massif-01` in the template to your own, or you'll get 404.
 
