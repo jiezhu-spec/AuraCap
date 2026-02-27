@@ -18,6 +18,9 @@ def _build_day_payload(entries: list[dict]) -> str:
 
 async def run_daily_insights(settings: Settings, provider: BaseProvider, target_day: date, timezone_name: str) -> str | None:
     entries = entries_by_day(settings.timeline_file, target_day, timezone_name)
+    # #region agent log
+    print(f"[DEBUG] run_daily_insights: target_day={target_day} tz={timezone_name} entries_count={len(entries)}")
+    # #endregion
     if not entries:
         return None
 

@@ -6,6 +6,18 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from backend.app.core.config import Settings
+
+LOG_PATH = Path(__file__).resolve().parents[3] / ".cursor" / "debug-ee3959.log"
+
+
+def _debug_log(msg: str, data: dict, hypothesis_id: str = "") -> None:
+    try:
+        payload = {"id": f"log_{id(data)}", "timestamp": int(datetime.now().timestamp() * 1000), "location": "scheduler.py", "message": msg, "data": data, "hypothesisId": hypothesis_id}
+        LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
 from backend.app.core.i18n import t
 from backend.app.models.schemas import SyncEvent
 from backend.app.providers.factory import ProviderBundle
@@ -127,11 +139,15 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
     }
 
     insights_target_day = (now - timedelta(days=settings.insights_target_day_offset)).date()
+    # #region agent log
+    _sr_insight = _should_run(settings.insights_cron, state.get("insights_last"), now)
     run_insight = (
         not settings.extract_only
         and settings.enable_insights
-        and (settings.force_scheduled_tasks or _should_run(settings.insights_cron, state.get("insights_last"), now))
+        and (settings.force_scheduled_tasks or _sr_insight)
     )
+    _debug_log("insight_check", {"now": now.isoformat(), "force": settings.force_scheduled_tasks, "should_run": _sr_insight, "run_insight": run_insight, "insights_cron": settings.insights_cron, "insights_last": state.get("insights_last")}, "H4")
+    # #endregion
     if run_insight:
         results["insight"] = await run_daily_insights(
             settings=settings,
@@ -164,11 +180,15 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
         )
         state["task_index_daily_last"] = now.isoformat()
 
+    # #region agent log
+    _sr_summary = _should_run(settings.summary_cron, state.get("summary_last"), now)
     run_summary = (
         not settings.extract_only
         and settings.enable_summary
-        and (settings.force_scheduled_tasks or _should_run(settings.summary_cron, state.get("summary_last"), now))
+        and (settings.force_scheduled_tasks or _sr_summary)
     )
+    _debug_log("summary_check", {"now": now.isoformat(), "force": settings.force_scheduled_tasks, "should_run": _sr_summary, "run_summary": run_summary, "summary_cron": settings.summary_cron, "summary_last": state.get("summary_last")}, "H1")
+    # #endregion
     if run_summary:
         results["summary"] = await run_periodic_summary(
             settings=settings,
@@ -176,6 +196,9 @@ async def run_scheduled_tasks_once(settings: Settings, now: datetime | None = No
             now_day=now.date(),
             timezone_name=settings.default_timezone,
         )
+        # #region agent log
+        _debug_log("summary_result", {"summary_path": results["summary"], "has_output": results["summary"] is not None}, "H2,H3")
+        # #endregion
         state["summary_last"] = now.isoformat()
         if results["summary"]:
             out_path = Path(results["summary"])
