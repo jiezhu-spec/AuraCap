@@ -186,3 +186,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-b065b4f45e1d40ac81f99c44f03830c0
+```json
+{
+  "id": "entry-b065b4f45e1d40ac81f99c44f03830c0",
+  "timestamp": "2026-02-28T19:28:01.413269+00:00",
+  "timestamp_display": "2026-02-28 19:28:01 UTC",
+  "extracted_content": "### 核心内容\n- 场景：办公室环境\n- 背景信息：\n  - 墙上有一张宣传海报，内容涉及电子设备展示。\n  - 办公桌上摆放有电脑显示器、文件、办公用品等。\n  - 室内光线明亮，窗帘拉下。\n\n### 行动项\n- 若需记录此场景，可关注宣传海报内容或办公环境布置。"
+}
+```
+
