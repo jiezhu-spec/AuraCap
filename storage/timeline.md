@@ -226,3 +226,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-60d82b7b011a444abdedc27baf867633
+```json
+{
+  "id": "entry-60d82b7b011a444abdedc27baf867633",
+  "timestamp": "2026-03-01T17:07:04.364105+00:00",
+  "timestamp_display": "2026-03-01 17:07:04 UTC",
+  "extracted_content": "### 核心内容\n\n#### 朱杰\n- **事件**：使用 RM-01 的本地算力部署完成任务。\n- **细节**：\n  - 部署了一池子龙虾。\n  - 龙虾部署在 RM-01 的 X86 模组上，算力直接调用本地 GPU（CUDA 模组）。\n  - 苹果 Mac Mini 正常办公。\n- **优势**：\n  1. 企业核心信息本地处理。\n  2. 节省 token 费用。\n\n#### 蹄子\n- **状态**：进入补水模式。\n- **Remotion 功能**：\n  - 皮质醇水平 -70%。\n  - 裸黑素水平 +50%。\n  - 抹除肺部不适。\n  - 15 分钟后启动深度睡眠模式（minutes * 360）。\n\n### 行动项\n- 朱杰：继续优化本地算力部署，提升效率。\n- 蹄子：关注 Remotion 的实际效果，观察睡眠质量改善情况。"
+}
+```
+
