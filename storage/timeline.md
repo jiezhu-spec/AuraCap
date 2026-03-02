@@ -246,3 +246,13 @@ This file appends one markdown-json entry per trigger.
 }
 ```
 
+### entry-2d7cbccbc44846c8ba874590f33fa1c1
+```json
+{
+  "id": "entry-2d7cbccbc44846c8ba874590f33fa1c1",
+  "timestamp": "2026-03-02T10:49:01.738135+00:00",
+  "timestamp_display": "2026-03-02 10:49:01 UTC",
+  "extracted_content": "### 核心内容\n- **沟通主题**：关于基于盒子的场景应用。\n- **时间**：周四下午3点。\n- **地点**：天府五街菁蓉汇2栋5楼。\n- **联系人**：朱杰，电话 15882008185。\n- **参与人员**：朱杰、李伟。\n\n### 行动项\n- 周四下午3点，朱杰和李伟前往指定地点进行沟通。"
+}
+```
+
