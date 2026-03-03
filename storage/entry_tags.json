@@ -59,5 +59,19 @@
     "work",
     "health",
     "finance"
+  ],
+  "entry-8561a7fc94d24a97b8ff239a5bc039c9": [
+    "learning",
+    "news",
+    "culture"
+  ],
+  "entry-2d7cbccbc44846c8ba874590f33fa1c1": [
+    "social",
+    "meeting"
+  ],
+  "entry-ee0580c985c44b2ea5a17279aa35e6bb": [
+    "work",
+    "decision",
+    "finance"
   ]
 }
