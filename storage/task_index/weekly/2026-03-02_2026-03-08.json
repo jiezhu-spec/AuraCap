@@ -1,0 +1,43 @@
+{
+  "window": "weekly",
+  "start": "2026-03-02",
+  "end": "2026-03-08",
+  "dominant_tag": "learning",
+  "tags": [
+    {
+      "tag": "learning",
+      "weight": 1,
+      "entries": [
+        {
+          "entry_id": "entry-8561a7fc94d24a97b8ff239a5bc039c9",
+          "timestamp_display": "2026-03-02 04:49:35 UTC",
+          "content_preview": "### 核心内容\n\n1. **China Daily 网站**  \n   - 网站地址: [chinadaily.com.cn](http://chinadaily.com.cn)  \n   - 特点: 中国最大的英文门户网站，提供新闻、商业信息、论坛、学习资料等。  \n   - 频道: 中国、商业、中国与世界、观点、体育/奥运、娱乐、生活方式、文化、城市生活、图片、论坛、天气等。\n\n2. **新浪网**  \n   - 网站地址: [sina.com.cn](http://sina.com.cn)  \n   - 特点: 中国最受欢迎的新闻网站之一，覆盖政治、经济、文化、娱乐等广泛话题，同时提供"
+        }
+      ]
+    },
+    {
+      "tag": "news",
+      "weight": 1,
+      "entries": [
+        {
+          "entry_id": "entry-8561a7fc94d24a97b8ff239a5bc039c9",
+          "timestamp_display": "2026-03-02 04:49:35 UTC",
+          "content_preview": "### 核心内容\n\n1. **China Daily 网站**  \n   - 网站地址: [chinadaily.com.cn](http://chinadaily.com.cn)  \n   - 特点: 中国最大的英文门户网站，提供新闻、商业信息、论坛、学习资料等。  \n   - 频道: 中国、商业、中国与世界、观点、体育/奥运、娱乐、生活方式、文化、城市生活、图片、论坛、天气等。\n\n2. **新浪网**  \n   - 网站地址: [sina.com.cn](http://sina.com.cn)  \n   - 特点: 中国最受欢迎的新闻网站之一，覆盖政治、经济、文化、娱乐等广泛话题，同时提供"
+        }
+      ]
+    },
+    {
+      "tag": "culture",
+      "weight": 1,
+      "entries": [
+        {
+          "entry_id": "entry-8561a7fc94d24a97b8ff239a5bc039c9",
+          "timestamp_display": "2026-03-02 04:49:35 UTC",
+          "content_preview": "### 核心内容\n\n1. **China Daily 网站**  \n   - 网站地址: [chinadaily.com.cn](http://chinadaily.com.cn)  \n   - 特点: 中国最大的英文门户网站，提供新闻、商业信息、论坛、学习资料等。  \n   - 频道: 中国、商业、中国与世界、观点、体育/奥运、娱乐、生活方式、文化、城市生活、图片、论坛、天气等。\n\n2. **新浪网**  \n   - 网站地址: [sina.com.cn](http://sina.com.cn)  \n   - 特点: 中国最受欢迎的新闻网站之一，覆盖政治、经济、文化、娱乐等广泛话题，同时提供"
+        }
+      ]
+    }
+  ],
+  "untagged_entries": [],
+  "generated_at": "2026-03-08T20:29:14.291353+00:00"
+}
