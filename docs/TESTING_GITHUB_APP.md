@@ -37,7 +37,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | 存放待处理截图/录音的 Release 的 tag 名称 |
 | `UNIFIED_PROVIDER`（可选） | 留空 | 统一模式：设为 `openai`、`google` 等时，TEXT/MM/ASR 均用同一 provider |
 
-处理完成后会自动从 Release 删除已上传文件，保持收件箱清爽。
+处理成功后会自动从 Release 删除已上传文件；超过大小/MIME 限制的无效上传也会被清理。模型/API 临时失败时会保留文件，便于重试。
 
 **Secrets**：使用真实模型时，点 `Secrets` 页签，`New repository secret` → 名称填 `OPENAI_API_KEY`（或 `GOOGLE_API_KEY`、`GROQ_API_KEY` 等）→ 值填你的 API Key。缺 Secret 会导致 `AUTH_FAILED`。**Provider 值必须小写**（如 `openai`）。详见 [GITHUB_RELEASE_INBOX 步骤 2](GITHUB_RELEASE_INBOX.md#步骤-2配置-variables-与-secrets)。
 
@@ -197,7 +197,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 1. **快捷指令**：无报错、无「参数错误」提示
 2. **GitHub Actions**：进入仓库 Actions，应看到 `AuraCap Ingest Dispatch` 有新运行记录
 3. **存储**：该次运行成功后，`storage/timeline.md` 会有新提交；每条记录含时间戳与提取内容
-4. **Release 文件清理**：处理完成后会自动从 Release 删除对应的截图/录音文件。
+4. **Release 文件清理**：处理成功后会自动从 Release 删除对应的截图/录音文件；超过大小/MIME 限制的无效上传也会被清理。模型/API 临时失败时会保留文件，便于重试。
 
 ---
 
@@ -259,7 +259,7 @@ Go to `Settings -> Secrets and variables -> Actions`.
 | `AURACAP_RELEASE_INBOX_TAG` | `auracap-inbox` | Tag name of the Release that holds pending screenshots/recordings |
 | `UNIFIED_PROVIDER` (optional) | leave empty | Unified mode: set to `openai`, `google`, etc. to use one provider for TEXT/MM/ASR |
 
-Uploaded files are automatically deleted from Release after processing.
+Uploaded files are automatically deleted from Release after successful processing. Files rejected by size/MIME limits are also cleaned up, while temporary model/API failures keep the file for retry.
 
 **Secrets**: For real models, click `Secrets`, add `OPENAI_API_KEY` (or `GOOGLE_API_KEY`, `GROQ_API_KEY`, etc.) with your API key. Missing Secret causes `AUTH_FAILED`. **Provider values must be lowercase** (e.g. `openai`). See [GITHUB_RELEASE_INBOX Step 2](GITHUB_RELEASE_INBOX.md#step-2-configure-variables-and-secrets).
 
@@ -415,7 +415,7 @@ Run the shortcut on iPhone. It screenshots, uploads, and triggers the workflow.
 1. **Shortcut**: No error, no "parameter error"
 2. **GitHub Actions**: Enter repo Actions; new run of `AuraCap Ingest Dispatch` should appear
 3. **Storage**: After run succeeds, `storage/timeline.md` gains new commit; each entry has timestamp and extracted content
-4. **Release file cleanup**: Uploaded files are automatically deleted from Release after processing.
+4. **Release file cleanup**: Uploaded files are automatically deleted from Release after successful processing; uploads rejected by size/MIME limits are also cleaned up. Temporary model/API failures keep the file for retry.
 
 ---
 
