@@ -43,7 +43,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 | `ENABLE_TASK_INDEX`（可选） | `true` | `true` 或 `false` | 任务索引开关；不配默认开启 |
 | `TASK_INDEX_TOP_N`（可选） | `3` | `3`、`5` 等 | 索引显示几个 tag；不配默认 3 |
 
-处理完成后会自动从 Release 删除已上传文件，保持收件箱清爽，避免重复上传 `shot.png` 时出现 `already_exists` 错误。
+处理成功后会自动从 Release 删除已上传文件；如果文件超过 `MAX_UPLOAD_MB` 或 MIME 类型不在允许列表，也会删除该无效上传，保持收件箱清爽。模型/API 临时失败时不会删除，便于修复配置后重跑。GitHub-only 官方路径始终使用 Release Asset 的 `asset_id`；`payload_ref` 历史远程 URL fallback 不再支持，也不需要在快捷指令里配置。
 
 ---
 
@@ -256,7 +256,7 @@ Fork `AuraCap` 到你自己的 GitHub 账号，后续所有操作都在你的 fo
 1. **快捷指令**：无报错、无「参数错误」提示
 2. **GitHub Actions**：进入仓库 Actions，应看到 `AuraCap Ingest Dispatch` 有新运行记录
 3. **存储**：该次运行成功后，`storage/timeline.md` 会有新提交；每条记录含时间戳与提取内容
-4. **Release 文件清理**：处理完成后会自动从 Release 删除对应的截图/录音文件，保持收件箱清爽。
+4. **Release 文件清理**：处理成功后会自动从 Release 删除对应的截图/录音文件；超过大小/MIME 限制的无效上传也会被清理。模型/API 临时失败时会保留文件，便于重试。
 
 ---
 
@@ -342,7 +342,7 @@ Click `Variables`, add by purpose:
 | `ENABLE_TASK_INDEX` (optional) | `true` | `true` or `false` | Task index switch; unset defaults to on |
 | `TASK_INDEX_TOP_N` (optional) | `3` | `3`, `5`, etc. | Number of tags shown in index; unset defaults to 3 |
 
-Uploaded files are automatically deleted from Release after processing to keep the inbox clean and avoid `already_exists` when re-uploading `shot.png`.
+Uploaded files are automatically deleted from Release after successful processing. Files rejected by `MAX_UPLOAD_MB` or the MIME allowlist are also deleted to keep the inbox clean. Temporary model/API failures keep the asset so you can fix configuration and rerun. The official GitHub-only path always uses Release Asset `asset_id`; the legacy `payload_ref` remote URL fallback is no longer supported and does not need to be configured in Shortcuts.
 
 ---
 
@@ -521,7 +521,7 @@ Run the shortcut on iPhone. It screenshots, uploads, and triggers the workflow.
 1. **Shortcut**: No error, no "parameter error"
 2. **GitHub Actions**: New run of `AuraCap Ingest Dispatch`
 3. **Storage**: New commit in `storage/timeline.md`; each entry has timestamp and extracted content
-4. **Release file cleanup**: Uploaded files are automatically deleted from Release after processing to keep the inbox clean.
+4. **Release file cleanup**: Uploaded files are automatically deleted from Release after successful processing; uploads rejected by size/MIME limits are also cleaned up. Temporary model/API failures keep the file for retry.
 
 ---
 
