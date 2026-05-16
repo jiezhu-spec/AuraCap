@@ -12,7 +12,7 @@
 - CI 与 workflow 修复：
   - `pyproject.toml`：新增 `[tool.setuptools.packages.find] include = ["backend*"]`，修复 `pip install .[dev]` 时「Multiple top-level packages」错误
   - `scheduler_tick.yml`：运行脚本时添加 `PYTHONPATH=.`，修复 `ModuleNotFoundError: No module named 'backend'`
-- Release 处理：`GITHUB_RELEASE_DELETE_AFTER_PROCESS` 固定为 `true`，处理完成后自动删除 Release 文件，避免 `shot.png` 重复上传时 `already_exists`；移除该变量配置项
+- Release 处理：`GITHUB_RELEASE_DELETE_AFTER_PROCESS` 固定为 `true`；处理成功或输入校验失败时自动删除 Release 文件，模型/API 临时失败时保留文件便于重试；移除该变量配置项
 - Timeline 存储格式精简：`storage/timeline.md` 每条仅保留 `timestamp`、`timestamp_display`、`extracted_content` 三字段，移除 id、locale、timezone、input_type、source、metadata、trace
 - 文档：Fine-grained Token 补充 `Actions: Read and write`（使用「调度工作流程」时）；常见问题补充 `already_exists` 与动态文件名说明
 - USERGUIDE 文档补全与结构优化：
@@ -49,6 +49,10 @@
 - README 新增「提示词说明」小节；补充自部署快速上手（git clone、Docker 选项）、输出目录（含 customized）、模型列表（Anthropic/Groq/Mistral）；USERGUIDE 3.6 补充提示词完整文档（作用、触发变量、自定义路径、截图 vs 录音说明）
 - `ENABLE_SCHEDULER`：scheduler 总开关（默认 `true`）；`false` 时 GitHub Actions job 直接 skip、自部署脚本 early return；不影响 HTTP 手动触发端点
 #### 修复
+- GitHub-only ingest 安全收紧：
+  - `payload_ref` 远程 URL fallback 不再支持；旧 `payload_ref`-only dispatch 需改用 `asset_id`
+  - Release Asset 必须属于 `GITHUB_RELEASE_INBOX_TAG` 对应 inbox release，且下载前后都会受 `MAX_UPLOAD_MB` 与 MIME allowlist 校验
+  - Release Asset 下载改为 streaming 限制；处理成功或输入校验失败时清理 asset，模型/API 临时失败时保留 asset 便于重试
 - `_matches_cron` weekday 字段现遵循标准 cron 约定（0=周日）；之前 weekday 与 Python datetime.weekday() 约定混用，导致含 weekday 的 cron 表达式执行在错误的星期
 
 ### [0.1.1] - 2026-02-22
@@ -105,7 +109,7 @@
 - CI and workflow fixes:
   - `pyproject.toml`: added `[tool.setuptools.packages.find] include = ["backend*"]` to fix "Multiple top-level packages" error on `pip install .[dev]`
   - `scheduler_tick.yml`: added `PYTHONPATH=.` when running script to fix `ModuleNotFoundError: No module named 'backend'`
-- Release handling: `GITHUB_RELEASE_DELETE_AFTER_PROCESS` hardcoded to `true`; uploaded files auto-deleted after processing to avoid `already_exists` when re-uploading `shot.png`; removed variable from config
+- Release handling: `GITHUB_RELEASE_DELETE_AFTER_PROCESS` hardcoded to `true`; uploaded files are deleted after successful processing or input validation failure, while temporary model/API failures keep the file for retry; removed variable from config
 - Timeline storage format simplified: each entry in `storage/timeline.md` now has only `timestamp`, `timestamp_display`, `extracted_content`; removed id, locale, timezone, input_type, source, metadata, trace
 - Docs: Fine-grained Token now documents `Actions: Read and write` when using "Run workflow"; troubleshooting updated for `already_exists` and dynamic filename
 - USERGUIDE documentation completion and restructuring:
@@ -142,6 +146,10 @@
 - README "提示词说明" section; self-host quick start (git clone, Docker option), output dirs (incl. customized), model list (Anthropic/Groq/Mistral); USERGUIDE 3.6 prompt docs (purpose, trigger vars, custom paths, screenshot vs recording)
 - `ENABLE_SCHEDULER`: master switch for scheduler (default `true`); when `false`, GitHub Actions job skips, self-host script exits early; does not affect HTTP manual trigger endpoint
 #### Fixed
+- GitHub-only ingest security hardening:
+  - `payload_ref` remote URL fallback is no longer supported; older `payload_ref`-only dispatches must switch to `asset_id`
+  - Release Assets must belong to the inbox release matching `GITHUB_RELEASE_INBOX_TAG`, and are validated against `MAX_UPLOAD_MB` and the MIME allowlist before reaching the pipeline
+  - Release Asset download now uses streaming limits; successful processing or input validation failures clean up the asset, while temporary model/API failures keep it for retry
 - `_matches_cron` weekday field now follows standard cron convention (0=Sunday); previously mixed with Python datetime.weekday(), causing weekday cron expressions to run on wrong day
 
 ### [0.1.1] - 2026-02-22

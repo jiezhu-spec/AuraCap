@@ -24,6 +24,13 @@ def _validate_mime(media_type: MediaType, mime_type: str, settings: Settings) ->
         raise ValueError(f"UNSUPPORTED_MEDIA: {mime_type}")
 
 
+def validate_media_payload(media_type: MediaType, mime_type: str, payload_bytes: bytes, settings: Settings) -> None:
+    max_bytes = settings.max_upload_mb * 1024 * 1024
+    if len(payload_bytes) > max_bytes:
+        raise ValueError("PAYLOAD_TOO_LARGE")
+    _validate_mime(media_type, mime_type, settings)
+
+
 def build_from_json(
     source: SourceType,
     media_type: MediaType,
@@ -65,10 +72,7 @@ def build_from_upload(
     metadata: dict,
     settings: Settings,
 ) -> CaptureRequest:
-    max_bytes = settings.max_upload_mb * 1024 * 1024
-    if len(payload_bytes) > max_bytes:
-        raise ValueError("PAYLOAD_TOO_LARGE")
-    _validate_mime(media_type, mime_type, settings)
+    validate_media_payload(media_type, mime_type, payload_bytes, settings)
 
     return CaptureRequest(
         source=source,

@@ -17,7 +17,7 @@ on:
         description: GitHub release asset id (preferred for GitHub-only)
         required: false
       payload_ref:
-        description: temporary media URL (legacy fallback)
+        description: deprecated and unsupported; use asset_id
         required: false
       locale:
         description: output locale
